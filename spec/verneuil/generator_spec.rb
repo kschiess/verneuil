@@ -4,9 +4,9 @@ describe Verneuil::Generator do
   let(:generator) { described_class.new }
   subject { generator.instructions }
   
-  context "method_call(name, arg_count)" do
-    before(:each) { generator.implicit_call(:foo, 42) }
+  context "foo(:bar, :baz) (handles any kind of instruction)" do
+    before(:each) { generator.foo(:bar, :baz) }
      
-    it { should == [[:implicit_call, :foo, 42]]}
+    it { should == [[:foo, :bar, :baz]]}
   end
 end
