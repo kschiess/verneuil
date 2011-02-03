@@ -21,7 +21,8 @@ class Verneuil::Compiler
       self.send(sym, *args)
     end
     
-    # s(:call, nil, :foo, s(:arglist)) - Method calls with or without receiver.
+    # s(:call, RECEIVER, NAME, ARGUMENTS) - Method calls with or without
+    # receiver.
     # 
     def accept_call(receiver, method_name, args)
       if receiver
@@ -32,11 +33,20 @@ class Verneuil::Compiler
       end
     end
     
-    # s(:arglist) - Argument lists. Needs to return the actual number of
-    # arguments that we've compiled. 
+    # s(:arglist, ARGUMENT, ARGUMENT) - Argument lists. Needs to return the
+    # actual number of arguments that we've compiled. 
     #
     def accept_arglist(*args)
       return args.size
+    end
+
+    # s(:block, STATEMENT, STATEMENT, ...) - Blocks of code. 
+    #
+    def accept_block(*statements)
+      statements.each_with_index do |statement, idx|
+        visit(statement)
+        @generator.pop 1 unless idx+1 == statements.size
+      end
     end
   end
   
