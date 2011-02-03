@@ -61,13 +61,20 @@ class Verneuil::Process
   # A call to an implicit target, in this case the context. 
   #
   def instr_implicit_call(name, argc)
-    @stack.push @context.send(name)
+    args = @stack.pop(argc)
+    @stack.push @context.send(name, *args)
   end
   
   # Pops n elements off the internal stack
   #
   def instr_pop(n)
     @stack.pop(n)
+  end
+  
+  # Loads a literal value to the stack. 
+  # 
+  def instr_load(val)
+    @stack.push val
   end
   
 end

@@ -37,6 +37,9 @@ class Verneuil::Compiler
     # actual number of arguments that we've compiled. 
     #
     def accept_arglist(*args)
+      args.each do |arg|
+        visit(arg)
+      end
       return args.size
     end
 
@@ -48,11 +51,18 @@ class Verneuil::Compiler
         @generator.pop 1 unless idx+1 == statements.size
       end
     end
+
+    # s(:lit, LITERAL) - A literal value.
+    #
+    def accept_lit(value)
+      @generator.load value
+    end
   end
   
   def compile(code)
     parser = RubyParser.new
     sexp = parser.parse(code)
+    p sexp
     
     generator = Verneuil::Generator.new
     visitor   = Visitor.new(generator)

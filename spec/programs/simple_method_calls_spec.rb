@@ -18,8 +18,8 @@ describe "Simple method calls" do
     
     verneuil = <<-RUBY
     foo
-    bar 
-    baz # a comment
+    bar(1) 
+    baz 1,2,3 # a comment
     RUBY
 
     run(context, verneuil)
