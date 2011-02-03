@@ -62,7 +62,7 @@ class Verneuil::Compiler
   def compile(code)
     parser = RubyParser.new
     sexp = parser.parse(code)
-    p sexp
+    # p sexp
     
     generator = Verneuil::Generator.new
     visitor   = Visitor.new(generator)
