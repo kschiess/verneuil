@@ -1,0 +1,22 @@
+
+A virtual machine for something almost like ruby. 
+
+The verneuil process produces artificial rubies that are somewhat unlike real
+rubies - they are too pure and don't have the characteristics of real ones. 
+
+This is a virtual machine that:
+  * executes something that is almost Ruby (it looks like it)
+  * and that can store its state to disk. And resume.
+
+Is it useful? That depends. You could for example use this to
+  * script website interaction with your user
+  * create scripts that run for days/months 
+  * create crash safe programs (checkpoints? transactions?)
+  * and perhaps more
+  
+STATUS
+
+At version 0.1 and by no means ready for production. May or may not work, 
+depending on time of day. 
+
+(c) 2011 Kaspar Schiess
