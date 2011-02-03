@@ -3,11 +3,11 @@ require 'spec_helper'
 describe "Simple method calls" do
   let(:compiler) { Verneuil::Compiler.new }
   let(:context) { flexmock(:context) }
-  let(:vm) { Verneuil::VM.new(context) }
   
   def run(context, code)
     program = compiler.compile(code)
-    vm.run(program, context)
+    process = Verneuil::Process.new(program, context)
+    process.run
   end
   
   it "should delegate calls without receiver to the context" do

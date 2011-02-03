@@ -4,16 +4,16 @@
 class Verneuil::Generator
   # Returns the instruction stream as has been assembled to this moment. 
   #
-  attr_reader :instructions
+  attr_reader :program
   
   def initialize
-    @instructions = []
+    @program = Verneuil::Program.new
   end
   
   # Adds an instruction to the current stream.
   #
   def add_instruction(*parts)
-    @instructions << parts
+    @program.add Verneuil::Instruction.new(*parts)
   end
   
   # This implements many of the instruction methods that are just one-to-one

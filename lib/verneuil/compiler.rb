@@ -58,6 +58,6 @@ class Verneuil::Compiler
     visitor   = Visitor.new(generator)
     visitor.visit(sexp)
     
-    generator.instructions
+    generator.program
   end
 end
