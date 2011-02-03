@@ -23,4 +23,26 @@ describe Verneuil::Process do
       process(program).run.should == :return_value
     end 
   end
+  describe "<- #step" do
+    it "should perform the next instruction and then quit" do
+      program = generate do |g|
+        g.implicit_call :foo, 0
+        g.implicit_call :bar, 0
+      end
+      
+      context.should_receive(:foo)
+      context.should_receive(:bar).never
+      process(program).step.should be_nil
+    end
+    it "should return a value once the process terminates" do
+      program = generate do |g|
+        g.implicit_call :foo, 0
+      end
+      p1 = process(program)
+      
+      context.should_receive(:foo => 42)
+      p1.step.should == 42
+      p1.should be_halted
+    end 
+  end
 end

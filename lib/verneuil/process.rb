@@ -9,24 +9,44 @@ class Verneuil::Process
     
     @ip = 0
     @stack = []
+    @halted = false
   end
   
+  # Runs the program until it completes and returns the last expression
+  # in the program.
+  #
   def run
-    catch(:halt) {
-      loop do
-        instruction = fetch_and_advance
-        return unless instruction
-
-        dispatch(instruction)
-      end
-    }
-    return @stack.last
+    until halted?
+      step
+    end
+    
+    @stack.last
+  end
+  
+  # Runs one instruction and returns nil. If this was the last instruction, 
+  # it returns the programs return value. 
+  #
+  def step
+    instruction = fetch_and_advance
+    dispatch(instruction)
+    
+    instr_halt if @ip >= @program.size
+    
+    halted? ? @stack.last : nil
+  end
+  
+  # Returns true if the process has halted because it has reached its end.
+  #
+  def halted?
+    !!@halted
   end
   
   # Fetches the next instruction and advances @ip.
   #
   def fetch_and_advance
-    throw :halt if @ip >= @program.size
+    # Pretends that the memory beyond the current space is filled with :halt
+    # instructions.
+    return :halt if @ip >= @program.size
     
     instruction = @program[@ip]
     @ip += 1
@@ -44,8 +64,14 @@ class Verneuil::Process
 
     begin
       self.send(sym, *rest)
-    rescue NoMethodError
-      exception "Unknown opcode #{opcode} (missing ##{sym})."
+    rescue NoMethodError => ex
+      # Catch our own method error, but not those that happen inside an 
+      # instruction that exists..
+      if ex.message.match(/sym/)
+        exception "Unknown opcode #{opcode} (missing ##{sym})."
+      else
+        raise
+      end
     end
   end
   
@@ -77,4 +103,9 @@ class Verneuil::Process
     @stack.push val
   end
   
+  # Halts the processor and returns the last value on the stack. 
+  # 
+  def instr_halt
+    @halted = true
+  end
 end

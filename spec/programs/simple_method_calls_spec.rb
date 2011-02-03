@@ -4,10 +4,9 @@ describe "Simple method calls" do
   let(:compiler) { Verneuil::Compiler.new }
   let(:context) { flexmock(:context) }
   
-  def run(context, code)
+  def process(context, code)
     program = compiler.compile(code)
-    process = Verneuil::Process.new(program, context)
-    process.run
+    Verneuil::Process.new(program, context)
   end
   
   it "should delegate calls without receiver to the context" do
@@ -22,6 +21,24 @@ describe "Simple method calls" do
     baz 1,2,3 # a comment
     RUBY
 
-    run(context, verneuil)
+    process(context, verneuil).run
   end
+  it "should allow marshalling the vm between method calls" do
+    context.
+      should_receive(:foo).once.ordered.
+      should_receive(:bar).with(1).once.ordered.
+      should_receive(:baz).with(1,2,3).once.ordered
+
+    code = <<-RUBY
+    foo
+    bar(1) 
+    baz 1,2,3 # a comment
+    RUBY
+
+    p1 = process(context, code)
+    p1.step
+    
+    p2 = Marshal.load(Marshal.dump(p1))
+    p2.run
+  end 
 end
