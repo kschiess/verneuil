@@ -1,11 +1,10 @@
 require 'spec_helper'
 
-describe "Simple method calls" do
-  class SimpleContext < Struct.new(:a)
-  end
+describe "Conditionals" do
+  SpecConditionalContext = Class.new(Struct.new(:a))
   
   context "with a==true" do
-    let(:context) { SimpleContext.new(true) }
+    let(:context) { SpecConditionalContext.new(true) }
     it "should echo true" do
       flexmock(context).should_receive(:echo).with(true).once.
         and_return(42)
@@ -14,7 +13,7 @@ describe "Simple method calls" do
     end 
   end
   context "with a==false" do
-    let(:context) { SimpleContext.new(false) }
+    let(:context) { SpecConditionalContext.new(false) }
     it "should echo false" do
       flexmock(context).should_receive(:echo).with(false).once.
       and_return(43)

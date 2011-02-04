@@ -26,7 +26,9 @@ class Verneuil::Compiler
     # 
     def accept_call(receiver, method_name, args)
       if receiver
-        raise NotImplementedError
+        argc = visit(args)
+        visit(receiver)
+        @generator.call method_name, argc
       else
         argc = visit(args)
         @generator.implicit_call method_name, argc
@@ -77,6 +79,22 @@ class Verneuil::Compiler
         @generator.load nil
       end
       @generator.resolve(adr_end)
+    end
+
+    # s(:lasgn, VARIABLE, VALUE) - assignment of local variables. 
+    #
+    def accept_lasgn(name, val)
+      visit(val)
+      @generator.load name
+      @generator.dup 1
+      @generator.implicit_call :local_variable_set, 2
+    end
+    
+    # s(:lvar, VARIABLE) - local variable access.
+    #
+    def accept_lvar(name)
+      @generator.load name
+      @generator.implicit_call :local_variable_get, 1
     end
 
     def accept_true

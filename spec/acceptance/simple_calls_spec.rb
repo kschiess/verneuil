@@ -1,13 +1,13 @@
 require 'spec_helper'
 
 describe "Simple method calls" do
-  class SimpleContext
+  class SpecMethodCallsContext
     def foo; end
     def bar(a); end
     def baz(a,b,c); c; end
   end
   
-  let(:context) { SimpleContext.new }
+  let(:context) { SpecMethodCallsContext.new }
   
   it "should delegate calls without receiver to the context" do
     flexmock(context).

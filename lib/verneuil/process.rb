@@ -91,6 +91,15 @@ class Verneuil::Process
     @stack.push @context.send(name, *args)
   end
   
+  # A call to an explicit receiver. The receiver should be on top of the stack. 
+  #
+  def instr_call(name, argc)
+    receiver = @stack.pop
+    args     = @stack.pop(argc)
+    @stack.push receiver.send(name, *args)
+  end
+  
+  
   # Pops n elements off the internal stack
   #
   def instr_pop(n)
@@ -101,6 +110,13 @@ class Verneuil::Process
   # 
   def instr_load(val)
     @stack.push val
+  end
+  
+  # Duplicates the value given by stack_idx (from the top) and pushes it 
+  # to the stack. 
+  #
+  def instr_dup(stack_idx)
+    @stack.push @stack[-stack_idx-1]
   end
   
   # Halts the processor and returns the last value on the stack. 

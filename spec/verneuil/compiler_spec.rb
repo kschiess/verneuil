@@ -40,4 +40,21 @@ describe Verneuil::Compiler do
     
     it { should == program }
   end
+  context "assignment" do
+    let(:code) { "a = 1"}
+    subject { compiler.compile(code) }
+    let(:program) {
+      generate { |g|
+        g.load 1
+        g.load :a
+        g.dup 1
+        g.implicit_call :local_variable_set, 2
+      }
+    }
+    
+    it { should == program }
+  end
+  context "call" do
+    it "should specced" 
+  end
 end 

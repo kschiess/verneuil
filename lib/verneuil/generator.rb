@@ -34,6 +34,12 @@ class Verneuil::Generator
     adr.ip = program.size
   end
   
+  # Override built in dup. 
+  #
+  def dup(n)
+    add_instruction :dup, n
+  end
+  
   # This implements many of the instruction methods that are just one-to-one
   # correspondances between methods on the generator and the instructions in
   # the stream. 
