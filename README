@@ -12,7 +12,19 @@ Is it useful? That depends. You could for example use this to
   * script website interaction with your user
   * create scripts that run for days/months 
   * create crash safe programs (checkpoints? transactions?)
+  * transfer running programs over the wire (agents!)?
   * and perhaps more
+  
+STEREOID-CODE
+
+Verneuil is *eval* on stereoids.
+  
+SYNOPSIS
+
+  code    = "puts 42"
+  program = Verneuil::Compiler.compile(code)
+  process = Verneuil::Process.new(code, self)
+  process.run   # prints 42 to the console.
   
 STATUS
 

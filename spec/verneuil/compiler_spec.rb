@@ -55,6 +55,26 @@ describe Verneuil::Compiler do
     it { should == program }
   end
   context "call" do
-    it "should specced" 
+    let(:code) { "1.succ"}
+    subject { compiler.compile(code) }
+    let(:program) {
+      generate { |g|
+        g.load 1
+        g.call :succ, 0
+      }
+    }
+    
+    it { should == program }
+  end
+  context "function definition" do
+    let(:code) { "def foo; 1; end"}
+    subject { compiler.compile(code) }
+    let(:program) {
+      generate { |g|
+        g.load 1
+      }
+    }
+    
+    it { should == program }
   end
 end 

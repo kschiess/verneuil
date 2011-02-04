@@ -97,6 +97,11 @@ class Verneuil::Compiler
       @generator.implicit_call :local_variable_get, 1
     end
 
+    # s(:defn, NAME, ARG_NAMES, BODY) - a method definition.
+    #
+    def accept_defn(name, args, body)
+    end
+
     def accept_true
       @generator.load true
     end
@@ -105,6 +110,9 @@ class Verneuil::Compiler
     end
   end
   
+  def self.compile(*args)
+    new.compile(*args)
+  end
   def compile(code)
     parser = RubyParser.new
     sexp = parser.parse(code)

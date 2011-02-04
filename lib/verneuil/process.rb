@@ -67,7 +67,8 @@ class Verneuil::Process
     rescue NoMethodError => ex
       # Catch our own method error, but not those that happen inside an 
       # instruction that exists..
-      if ex.message.match(/sym/)
+      if ex.message.match(/#{sym}/)
+        warn @program
         exception "Unknown opcode #{opcode} (missing ##{sym})."
       else
         raise
