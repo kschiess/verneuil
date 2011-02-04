@@ -67,11 +67,14 @@ describe Verneuil::Compiler do
     it { should == program }
   end
   context "function definition" do
-    let(:code) { "def foo; 1; end"}
+    let(:code) { "def foo; return 2; 1; end"}
     subject { compiler.compile(code) }
     let(:program) {
       generate { |g|
+        g.load 2
+        g.return 
         g.load 1
+        g.return
       }
     }
     

@@ -49,8 +49,14 @@ class Verneuil::Compiler
     #
     def accept_block(*statements)
       statements.each_with_index do |statement, idx|
+        type, *rest = statement
+        
         visit(statement)
-        @generator.pop 1 unless idx+1 == statements.size
+        
+        unless idx+1 == statements.size ||
+          type == :return
+          @generator.pop 1 
+        end
       end
     end
 
@@ -100,6 +106,23 @@ class Verneuil::Compiler
     # s(:defn, NAME, ARG_NAMES, BODY) - a method definition.
     #
     def accept_defn(name, args, body)
+      visit(body)
+      @generator.return
+    end
+    
+    # s(:scope, BODY) - a new scope.
+    #
+    def accept_scope(body)
+      # For now, we don't know what we'll eventually do with scopes. So here
+      # is this very basic idea...
+      visit(body)
+    end
+    
+    # s(:return, RETVAL) - return from the current method. 
+    #
+    def accept_return(val)
+      visit(val)
+      @generator.return 
     end
 
     def accept_true
