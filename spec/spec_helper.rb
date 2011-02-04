@@ -18,6 +18,7 @@ end
 def process(code, context)
   compiler = Verneuil::Compiler.new
   program = compiler.compile(code)
+  p program
   Verneuil::Process.new(program, context)
 end
 

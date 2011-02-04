@@ -40,4 +40,14 @@ class Verneuil::Program
   def add(instruction)
     @instructions << instruction
   end
+  
+  # Printing
+  # 
+  def to_s
+    s = ''
+    @instructions.each_with_index do |instruction, idx|
+      s << sprintf("%04d %s\n", idx, instruction)
+    end
+    s
+  end
 end

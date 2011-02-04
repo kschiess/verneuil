@@ -4,9 +4,58 @@ require 'ruby_parser'
 # Compiles verneuil code into a program. 
 #
 class Verneuil::Compiler
+  attr_reader :functions
+  
+  def initialize
+    @generator = Verneuil::Generator.new
+    @functions = {}
+  end
+  
+  # Defines a function. 
+  #
+  def add_function(name, args, adr)
+    functions[name] = Verneuil::Method.new(name, args, adr)
+  end
+  
+  # Returns the function that matches the given receiver and method name. 
+  #
+  def lookup_function(recv, name)
+    functions[name]
+  end
+  
+  def program
+    @generator.program
+  end
+  
+  def self.compile(*args)
+    new.compile(*args)
+  end
+    
+  # Compiles a piece of code within the current program. This means that any
+  # method definitions that have already been encountered will be used to 
+  # resolve method calls. Returns the program which can also be accessed 
+  # using #program on the compiler instance. 
+  #
+  def compile(code)
+    parser = RubyParser.new
+    sexp = parser.parse(code)
+    # pp sexp
+    
+    visitor   = Visitor.new(@generator, self)
+    visitor.visit(sexp)
+    
+    @generator.program
+  end
+  
+  # Compiler visitor visits sexps and transforms them into executable code
+  # by calling back on its code generator. 
+  #
   class Visitor
-    def initialize(generator)
+    NOPOP = [:return, :defn]
+    
+    def initialize(generator, compiler)
       @generator = generator
+      @compiler = compiler
     end
     
     def visit(sexp)
@@ -25,13 +74,23 @@ class Verneuil::Compiler
     # receiver.
     # 
     def accept_call(receiver, method_name, args)
-      if receiver
-        argc = visit(args)
-        visit(receiver)
-        @generator.call method_name, argc
+      argc = visit(args)
+      
+      # Method resolution: 
+      # Tries V-methods first, followed by fallback on Ruby methods (sent 
+      # to the context if no receiver was given).
+
+      method = @compiler.lookup_function(receiver, method_name)
+      if method
+        @generator.call method.address
       else
-        argc = visit(args)
-        @generator.implicit_call method_name, argc
+        if receiver
+          visit(receiver)
+          @generator.ruby_call method_name, argc
+        else
+          argc = visit(args)
+          @generator.ruby_call_implicit method_name, argc
+        end
       end
     end
     
@@ -54,7 +113,7 @@ class Verneuil::Compiler
         visit(statement)
         
         unless idx+1 == statements.size ||
-          type == :return
+          NOPOP.include?(type)
           @generator.pop 1 
         end
       end
@@ -93,21 +152,40 @@ class Verneuil::Compiler
       visit(val)
       @generator.load name
       @generator.dup 1
-      @generator.implicit_call :local_variable_set, 2
+      @generator.ruby_call_implicit :local_variable_set, 2
     end
     
     # s(:lvar, VARIABLE) - local variable access.
     #
     def accept_lvar(name)
       @generator.load name
-      @generator.implicit_call :local_variable_get, 1
+      @generator.ruby_call_implicit :local_variable_get, 1
     end
 
     # s(:defn, NAME, ARG_NAMES, BODY) - a method definition.
     #
     def accept_defn(name, args, body)
+      # Jumping over functions so that definitions don't get executed.
+      adr_end = @generator.fwd_adr
+      @generator.jump adr_end
+      
+      @compiler.add_function(name, args, @generator.current_adr)
+      
+      visit(args)
       visit(body)
       @generator.return
+      
+      @generator.resolve adr_end
+    end
+    
+    # s(:args, ARGUMENT_NAMES) 
+    #
+    def accept_args(*arg_names)
+      arg_names.each do |name|
+        @generator.load name
+        @generator.roll 1
+        @generator.ruby_call_implicit :local_variable_set, 2
+      end
     end
     
     # s(:scope, BODY) - a new scope.
@@ -131,20 +209,5 @@ class Verneuil::Compiler
     def accept_false
       @generator.load false
     end
-  end
-  
-  def self.compile(*args)
-    new.compile(*args)
-  end
-  def compile(code)
-    parser = RubyParser.new
-    sexp = parser.parse(code)
-    # p sexp
-    
-    generator = Verneuil::Generator.new
-    visitor   = Visitor.new(generator)
-    visitor.visit(sexp)
-    
-    generator.program
   end
 end

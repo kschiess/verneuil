@@ -9,6 +9,7 @@ class Verneuil::Process
     
     @ip = 0
     @stack = []
+    @call_stack = []
     @halted = false
   end
   
@@ -29,6 +30,8 @@ class Verneuil::Process
   def step
     instruction = fetch_and_advance
     dispatch(instruction)
+  
+    p [@ip, instruction, @stack, @call_stack]
     
     instr_halt if @ip >= @program.size
     
@@ -87,16 +90,17 @@ class Verneuil::Process
   
   # A call to an implicit target, in this case the context. 
   #
-  def instr_implicit_call(name, argc)
+  def instr_ruby_call_implicit(name, argc)
     args = @stack.pop(argc)
     @stack.push @context.send(name, *args)
   end
   
   # A call to an explicit receiver. The receiver should be on top of the stack. 
   #
-  def instr_call(name, argc)
+  def instr_ruby_call(name, argc)
     receiver = @stack.pop
     args     = @stack.pop(argc)
+
     @stack.push receiver.send(name, *args)
   end
   
@@ -105,6 +109,18 @@ class Verneuil::Process
   #
   def instr_pop(n)
     @stack.pop(n)
+  end
+  
+  # Rolls the stack contents starting at idx forward. 
+  #
+  # Example: 
+  #   ..., 3, 4, 5 becomes
+  #   ..., 5, 3, 4 
+  #   upon roll 2
+  #
+  def instr_roll(n)
+    i = -(n+1)
+    @stack[i..-1] = [@stack[-1], @stack[i..-2]].flatten
   end
   
   # Loads a literal value to the stack. 
@@ -141,4 +157,17 @@ class Verneuil::Process
     @ip = adr.ip
   end
   
+  # Calling verneuil-methods.
+  #
+  def instr_call(adr)
+    @call_stack.push @ip
+    @ip = adr.ip
+  end
+  
+  # Returning from a method (pops the call_stack.)
+  # 
+  def instr_return
+    exception "Nothing to return to on the call stack." if @call_stack.empty?
+    @ip = @call_stack.pop
+  end
 end

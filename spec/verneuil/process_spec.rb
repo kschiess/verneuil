@@ -7,6 +7,23 @@ describe Verneuil::Process do
     Verneuil::Process.new(program, context)
   end
   
+  describe "function calls inside verneuil" do
+    let(:program) {
+      generate { |g|
+        g.call Verneuil::Address.new(2)
+        g.halt
+        g.load 2
+        g.return 
+        g.load 1
+        g.return
+      }
+    }
+    
+    it "should terminate and return 2" do
+      process(program).run.should == 2
+    end 
+  end
+  
   describe "<- #run" do
     it "should stop as soon as the program is done" do
       empty = Verneuil::Program.new
@@ -16,7 +33,7 @@ describe Verneuil::Process do
     end 
     it "should execute a method call" do
       program = generate do |g|
-        g.implicit_call :foo, 0
+        g.ruby_call_implicit :foo, 0
       end
       
       context.should_receive(:foo => :return_value).once
@@ -26,8 +43,8 @@ describe Verneuil::Process do
   describe "<- #step" do
     it "should perform the next instruction and then quit" do
       program = generate do |g|
-        g.implicit_call :foo, 0
-        g.implicit_call :bar, 0
+        g.ruby_call_implicit :foo, 0
+        g.ruby_call_implicit :bar, 0
       end
       
       context.should_receive(:foo)
@@ -36,7 +53,7 @@ describe Verneuil::Process do
     end
     it "should return a value once the process terminates" do
       program = generate do |g|
-        g.implicit_call :foo, 0
+        g.ruby_call_implicit :foo, 0
       end
       p1 = process(program)
       

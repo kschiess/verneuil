@@ -28,6 +28,12 @@ class Verneuil::Generator
     Verneuil::Address.new(ip)
   end
   
+  # Returns an address that points at the current location in the program. 
+  #
+  def current_adr
+    Verneuil::Address.new(program.size)
+  end
+  
   # Resolves an address to the current location. 
   #
   def resolve(adr)

@@ -6,7 +6,7 @@ describe Verneuil::Compiler do
   context "simple method call" do
     let(:code) { %Q(foo) }
     let(:program) { generate do |g|
-      g.implicit_call :foo, 0
+      g.ruby_call_implicit :foo, 0
     end }
     subject { compiler.compile(code) }
 
@@ -15,11 +15,11 @@ describe Verneuil::Compiler do
   context "block of code" do
     let(:code) { %Q(foo; bar; baz) }
     let(:program) { generate do |g|
-      g.implicit_call :foo, 0
+      g.ruby_call_implicit :foo, 0
       g.pop 1
-      g.implicit_call :bar, 0
+      g.ruby_call_implicit :bar, 0
       g.pop 1
-      g.implicit_call :baz, 0
+      g.ruby_call_implicit :baz, 0
     end }
     subject { compiler.compile(code) }
 
@@ -48,7 +48,7 @@ describe Verneuil::Compiler do
         g.load 1
         g.load :a
         g.dup 1
-        g.implicit_call :local_variable_set, 2
+        g.ruby_call_implicit :local_variable_set, 2
       }
     }
     
@@ -60,24 +60,51 @@ describe Verneuil::Compiler do
     let(:program) {
       generate { |g|
         g.load 1
-        g.call :succ, 0
+        g.ruby_call :succ, 0
       }
     }
     
     it { should == program }
   end
   context "function definition" do
-    let(:code) { "def foo; return 2; 1; end"}
-    subject { compiler.compile(code) }
+    let(:code) { "def foo(n); return n; 1; end; foo 1"}
     let(:program) {
       generate { |g|
-        g.load 2
+        g.jump g.abs_adr(9)
+        g.load :n
+        g.roll 1
+        g.ruby_call_implicit :local_variable_set, 2
+        g.load :n
+        g.ruby_call_implicit :local_variable_get, 1
         g.return 
         g.load 1
         g.return
+        g.load 1
+        g.call g.abs_adr(1)
       }
     }
+    subject { compiler.compile(code) }
     
     it { should == program }
+    
+    context "function :foo" do
+      before(:each) { compiler.compile(code) }
+      subject { compiler.functions[:foo] }
+      its(:name)    { should == :foo }
+      its(:address) { should == Verneuil::Address.new(1) }
+    end
+  end
+
+  describe "<- #compile" do
+    it "should support multiple calls with different pieces of code" do
+      other_compiler = Verneuil::Compiler.new
+      
+      compiler.compile 'foo'
+      compiler.compile 'bar'
+      
+      other_compiler.compile 'foo; bar'
+      
+      compiler.program.should == compiler.program
+    end
   end
 end 
