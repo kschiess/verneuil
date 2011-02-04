@@ -13,3 +13,19 @@ def generate(&block)
   g.program
 end
 
+# Returns a new process created from code. 
+#
+def process(code, context)
+  compiler = Verneuil::Compiler.new
+  program = compiler.compile(code)
+  Verneuil::Process.new(program, context)
+end
+
+
+# Returns the code of a sample program (in spec/programs).
+#
+def sample(*names)
+  File.read(
+    File.join(
+      File.dirname(__FILE__), 'programs', *names))
+end

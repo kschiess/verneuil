@@ -108,4 +108,20 @@ class Verneuil::Process
   def instr_halt
     @halted = true
   end
+
+  # JUMPS !!
+  
+  # Jumps to the given address if the top of the stack contains a false value.
+  #
+  def instr_jump_if_false(adr)
+    val = @stack.pop
+    @ip = adr.ip unless val
+  end
+  
+  # Unconditional jump
+  #
+  def instr_jump(adr)
+    @ip = adr.ip
+  end
+  
 end

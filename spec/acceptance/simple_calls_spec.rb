@@ -7,13 +7,7 @@ describe "Simple method calls" do
     def baz(a,b,c); c; end
   end
   
-  let(:compiler) { Verneuil::Compiler.new }
   let(:context) { SimpleContext.new }
-  
-  def process(context, code)
-    program = compiler.compile(code)
-    Verneuil::Process.new(program, context)
-  end
   
   it "should delegate calls without receiver to the context" do
     flexmock(context).
@@ -21,22 +15,14 @@ describe "Simple method calls" do
       should_receive(:bar).with(1).once.ordered.
       should_receive(:baz).with(1,2,3).once.ordered
     
-    verneuil = <<-RUBY
-    foo
-    bar(1) 
-    baz 1,2,3 # a comment
-    RUBY
+    verneuil = sample('simple_methods.rb')
 
-    process(context, verneuil).run
+    process(verneuil, context).run
   end
   it "should allow marshalling the vm between method calls" do
-    code = <<-RUBY
-    foo
-    bar(1) 
-    baz 1,2,3 # a comment
-    RUBY
+    code = sample('simple_methods.rb')
 
-    p1 = process(context, code)
+    p1 = process(code, context)
     p1.step
 
     p2 = Marshal.load(Marshal.dump(p1))

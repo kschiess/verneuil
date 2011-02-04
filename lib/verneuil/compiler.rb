@@ -57,6 +57,34 @@ class Verneuil::Compiler
     def accept_lit(value)
       @generator.load value
     end
+
+    # s(:if, COND, THEN, ELSE) - an if statement
+    #
+    def accept_if(cond, _then, _else)
+      adr_else = @generator.fwd_adr
+      adr_end  = @generator.fwd_adr
+      
+      visit(cond)
+      @generator.jump_if_false adr_else
+      
+      visit(_then)
+      @generator.jump adr_end
+      
+      @generator.resolve(adr_else)
+      if _else
+        visit(_else)
+      else
+        @generator.load nil
+      end
+      @generator.resolve(adr_end)
+    end
+
+    def accept_true
+      @generator.load true
+    end
+    def accept_false
+      @generator.load false
+    end
   end
   
   def compile(code)

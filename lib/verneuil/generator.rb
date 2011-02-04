@@ -16,6 +16,24 @@ class Verneuil::Generator
     @program.add Verneuil::Instruction.new(*parts)
   end
   
+  # Returns an address that hasn't been fixed to an instruction pointer yet. 
+  # 
+  def fwd_adr
+    Verneuil::Address.new
+  end
+  
+  # Returns an address that points at the location given by +ip+. 
+  #
+  def abs_adr(ip)
+    Verneuil::Address.new(ip)
+  end
+  
+  # Resolves an address to the current location. 
+  #
+  def resolve(adr)
+    adr.ip = program.size
+  end
+  
   # This implements many of the instruction methods that are just one-to-one
   # correspondances between methods on the generator and the instructions in
   # the stream. 
