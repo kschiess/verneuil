@@ -31,7 +31,7 @@ class Verneuil::Process
     instruction = fetch_and_advance
     dispatch(instruction)
   
-    p [@ip, instruction, @stack, @call_stack]
+    # p [@ip, instruction, @stack, @call_stack]
     
     instr_halt if @ip >= @program.size
     
@@ -103,7 +103,6 @@ class Verneuil::Process
 
     @stack.push receiver.send(name, *args)
   end
-  
   
   # Pops n elements off the internal stack
   #
