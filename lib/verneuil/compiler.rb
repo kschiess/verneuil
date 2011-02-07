@@ -70,6 +70,8 @@ class Verneuil::Compiler
       self.send(sym, *args)
     end
     
+    #--------------------------------------------------------- visitor methods
+    
     # s(:call, RECEIVER, NAME, ARGUMENTS) - Method calls with or without
     # receiver.
     # 
@@ -137,13 +139,13 @@ class Verneuil::Compiler
       visit(_then)
       @generator.jump adr_end
       
-      @generator.resolve(adr_else)
+      adr_else.resolve
       if _else
         visit(_else)
       else
         @generator.load nil
       end
-      @generator.resolve(adr_end)
+      adr_end.resolve
     end
 
     # s(:lasgn, VARIABLE, VALUE) - assignment of local variables. 
@@ -176,14 +178,20 @@ class Verneuil::Compiler
       visit(body)
       @generator.return
       
-      @generator.resolve adr_end
+      adr_end.resolve
     end
     
     # s(:args, ARGUMENT_NAMES) 
     #
     def accept_args(*arg_names)
       arg_names.each do |name|
-        @generator.lvar_set name
+        if name.to_s.start_with?('&')
+          stripped_name = name.to_s[1..-1].to_sym
+          @generator.load_block
+          @generator.lvar_set stripped_name
+        else
+          @generator.lvar_set name
+        end
       end
     end
     
@@ -200,6 +208,33 @@ class Verneuil::Compiler
     def accept_return(val)
       visit(val)
       @generator.return 
+    end
+    
+    # s(:iter, s(:call, RECEIVER, METHOD, ARGUMENTS), ASSIGNS, BLOCK) - call
+    # a method with a block. 
+    #
+    def accept_iter(call, assigns, block)
+      # Create a block structure that can be pushed to the block stack. 
+      adr_end_of_block = @generator.fwd_adr
+
+      # Jump over the block code
+      @generator.jump adr_end_of_block
+      
+      adr_start_of_block = @generator.current_adr
+      @generator.pop 1
+      visit(assigns) if assigns
+      visit(block)
+      @generator.return 
+
+      # Push block structure. 
+      adr_end_of_block.resolve
+      @generator.push_block adr_start_of_block
+      
+      # Compile the call as we would normally.
+      visit(call)
+      
+      # Remove the block.
+      @generator.pop_block
     end
 
     def accept_true

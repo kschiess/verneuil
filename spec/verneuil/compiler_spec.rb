@@ -91,8 +91,61 @@ describe Verneuil::Compiler do
       before(:each) { compiler.compile(code) }
       subject { compiler.functions[:foo] }
       its(:name)    { should == :foo }
-      its(:address) { should == Verneuil::Address.new(1) }
+      it "should point to the address of the function" do
+        subject.address.ip.should == 1
+      end 
     end
+  end
+  context "methods with block argument" do
+    let(:code) { "def foo(&block); block.call(1); end; a=0; foo { a }" }
+    let(:program) {
+      generate { |g|
+        adr_after_block = g.fwd_adr
+        adr_after_fun = g.fwd_adr
+
+        g.jump adr_after_fun
+        
+        adr_start_of_fun = g.current_adr
+        
+        # Function 
+        g.enter true
+        g.load_block
+        g.lvar_set :block
+        
+        # translates: block.call(1)
+        g.load 1 
+        g.lvar_get :block
+        g.ruby_call :call, 1
+        g.return
+        
+        adr_after_fun.resolve 
+        
+        # translates: a = 0
+        g.load 0
+        g.dup 0
+        g.lvar_set :a
+        g.pop 1
+        
+        g.jump adr_after_block
+        
+        adr_start_of_block = g.current_adr
+        
+        # Block
+        g.pop 1       # calling the block leaves a return value on the stack. 
+        g.lvar_get :a
+        g.return
+        
+        adr_after_block.resolve
+                
+        # translates: foo { a }
+        g.push_block adr_start_of_block
+        g.call adr_start_of_fun
+        g.pop_block
+      }
+    }
+    subject { compiler.compile(code) }
+
+    it { should == program }
   end
 
   describe "<- #compile" do

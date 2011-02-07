@@ -5,11 +5,19 @@ class Verneuil::Process
   # Create a process, giving it a program to run and a context to run in. 
   #
   def initialize(program, context)
+    # The program that is being executed.
     @program = program
+    # Keeps the current scope and the ones before it.
     @scopes  = [Verneuil::Scope.new(context, {})]
-    @ip = 0
+    # Keeps implicit blocks when executing iteration code. 
+    @blocks  = []
+    # Value stack
     @stack = []
+    # Return address stack
     @call_stack = []
+    # Instruction pointer
+    @ip = 0
+    # Should we stop immediately? Cannot restart after setting this. 
     @halted = false
   end
   
@@ -92,6 +100,12 @@ class Verneuil::Process
     @scopes.last
   end
   
+  # Installs a scope temporarily.
+  #
+  def install_scope(scope)
+    @scopes.push scope
+  end
+    
   # VM Implementation --------------------------------------------------------
   
   # A call to an implicit target, in this case the context. 
@@ -186,6 +200,7 @@ class Verneuil::Process
   # Returns the value of the local variable identified by name. 
   #
   def instr_lvar_get(name)
+    p current_scope
     @stack.push current_scope.lvar_get(name)
   end
   
@@ -199,4 +214,28 @@ class Verneuil::Process
       @scopes.push @scope.enter
     end
   end
+  
+  # Pushes a block context to the block stack. 
+  #
+  def instr_push_block(block_adr)
+    p [:push_block, current_scope]
+    @blocks.push Verneuil::Block.new(block_adr, self, current_scope)
+  end
+  
+  # Loads the currently set implicit block to the stack. This is used when
+  # turning an implicit block into an explicit block by storing it to a 
+  # local variable. 
+  #
+  def instr_load_block
+    fail "BUG: No implicit block!" if @blocks.empty?
+    @stack.push @blocks.last
+  end
+  
+  # Unloads a block
+  #
+  def instr_pop_block
+    @blocks.pop
+  end
+  
+  
 end

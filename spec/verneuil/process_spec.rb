@@ -10,7 +10,7 @@ describe Verneuil::Process do
   describe "function calls inside verneuil" do
     let(:program) {
       generate { |g|
-        g.call Verneuil::Address.new(2)
+        g.call g.abs_adr(2)
         g.halt
         g.load 2
         g.return 

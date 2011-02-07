@@ -19,19 +19,19 @@ class Verneuil::Generator
   # Returns an address that hasn't been fixed to an instruction pointer yet. 
   # 
   def fwd_adr
-    Verneuil::Address.new
+    current_adr
   end
   
   # Returns an address that points at the location given by +ip+. 
   #
   def abs_adr(ip)
-    Verneuil::Address.new(ip)
+    Verneuil::Address.new(ip, self)
   end
   
   # Returns an address that points at the current location in the program. 
   #
   def current_adr
-    Verneuil::Address.new(program.size)
+    Verneuil::Address.new(program.size, self)
   end
   
   # Resolves an address to the current location. 

@@ -12,7 +12,6 @@ describe Verneuil::Generator do
   describe "<- #fwd_adr" do
     subject { generator.fwd_adr }
     it { should be_kind_of(Verneuil::Address) }
-    its(:ip) { should be_nil }
   end
   describe "<- #abs_adr(n)" do
     subject { generator.abs_adr(10) }
