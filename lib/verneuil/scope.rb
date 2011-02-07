@@ -28,4 +28,8 @@ class Verneuil::Scope
   def lvar_set(name, value)
     @local_vars[name] = value
   end
+
+  def method_call(name, *args)
+    context.send(name, *args)
+  end
 end

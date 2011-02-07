@@ -37,4 +37,12 @@ describe Verneuil::Scope do
       subject.lvar_get(:a).should == 1
     end 
   end
+  
+  describe "delegation" do
+    it "should delegate method calls to context" do
+      context.should_receive(:name).with(:arg1, :arg2).and_return 13
+
+      scope.method_call(:name, :arg1, :arg2).should == 13
+    end 
+  end
 end

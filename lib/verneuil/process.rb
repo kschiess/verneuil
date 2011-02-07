@@ -5,8 +5,8 @@ class Verneuil::Process
   # Create a process, giving it a program to run and a context to run in. 
   #
   def initialize(program, context)
-    @context, @program = context, program
-    
+    @program = program
+    @scope = Verneuil::Scope.new(context, {})
     @ip = 0
     @stack = []
     @call_stack = []
@@ -92,7 +92,7 @@ class Verneuil::Process
   #
   def instr_ruby_call_implicit(name, argc)
     args = @stack.pop(argc)
-    @stack.push @context.send(name, *args)
+    @stack.push @scope.method_call(name, *args)
   end
   
   # A call to an explicit receiver. The receiver should be on top of the stack. 
@@ -173,18 +173,18 @@ class Verneuil::Process
   # Sets the local variable given by name. 
   #
   def instr_lvar_set(name)
-    @context.local_variable_set(name, @stack.pop)
+    @scope.lvar_set(name, @stack.pop)
   end
   
   # Returns the value of the local variable identified by name. 
   #
   def instr_lvar_get(name)
-    @stack.push @context.local_variable_get(name)
+    @stack.push @scope.lvar_get(name)
   end
   
   # Create a new local scope. 
   #
   def instr_enter
-    @context.enter_scope
+    @scope = @scope.enter_scope
   end
 end
