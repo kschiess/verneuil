@@ -169,4 +169,22 @@ class Verneuil::Process
     exception "Nothing to return to on the call stack." if @call_stack.empty?
     @ip = @call_stack.pop
   end
+
+  # Sets the local variable given by name. 
+  #
+  def instr_lvar_set(name)
+    @context.local_variable_set(name, @stack.pop)
+  end
+  
+  # Returns the value of the local variable identified by name. 
+  #
+  def instr_lvar_get(name)
+    @stack.push @context.local_variable_get(name)
+  end
+  
+  # Create a new local scope. 
+  #
+  def instr_enter
+    @context.enter_scope
+  end
 end

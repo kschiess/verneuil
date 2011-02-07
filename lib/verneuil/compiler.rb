@@ -157,8 +157,7 @@ class Verneuil::Compiler
     # s(:lvar, VARIABLE) - local variable access.
     #
     def accept_lvar(name)
-      @generator.load name
-      @generator.lvar_get
+      @generator.lvar_get name
     end
 
     # s(:defn, NAME, ARG_NAMES, BODY) - a method definition.

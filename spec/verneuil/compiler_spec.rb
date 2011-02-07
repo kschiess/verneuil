@@ -73,8 +73,7 @@ describe Verneuil::Compiler do
         g.jump adr_end
         g.enter
         g.lvar_set :n
-        g.load :n
-        g.lvar_get
+        g.lvar_get :n
         g.return 
         g.load 1
         g.return
