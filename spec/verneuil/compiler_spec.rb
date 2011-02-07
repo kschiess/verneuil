@@ -46,9 +46,8 @@ describe Verneuil::Compiler do
     let(:program) {
       generate { |g|
         g.load 1
-        g.load :a
         g.dup 1
-        g.ruby_call_implicit :local_variable_set, 2
+        g.lvar_set :a
       }
     }
     
@@ -70,15 +69,17 @@ describe Verneuil::Compiler do
     let(:code) { "def foo(n); return n; 1; end; foo 1"}
     let(:program) {
       generate { |g|
-        g.jump g.abs_adr(9)
+        adr_end = g.fwd_adr
+        g.jump adr_end
+        g.enter
+        g.lvar_set :n
         g.load :n
-        g.roll 1
-        g.ruby_call_implicit :local_variable_set, 2
-        g.load :n
-        g.ruby_call_implicit :local_variable_get, 1
+        g.lvar_get
         g.return 
         g.load 1
         g.return
+        
+        g.resolve adr_end
         g.load 1
         g.call g.abs_adr(1)
       }

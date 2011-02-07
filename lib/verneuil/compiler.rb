@@ -150,16 +150,15 @@ class Verneuil::Compiler
     #
     def accept_lasgn(name, val)
       visit(val)
-      @generator.load name
       @generator.dup 1
-      @generator.ruby_call_implicit :local_variable_set, 2
+      @generator.lvar_set name
     end
     
     # s(:lvar, VARIABLE) - local variable access.
     #
     def accept_lvar(name)
       @generator.load name
-      @generator.ruby_call_implicit :local_variable_get, 1
+      @generator.lvar_get
     end
 
     # s(:defn, NAME, ARG_NAMES, BODY) - a method definition.
@@ -170,8 +169,11 @@ class Verneuil::Compiler
       @generator.jump adr_end
       
       @compiler.add_function(name, args, @generator.current_adr)
-      
+
+      # Enters a new local scope and defines arguments
+      @generator.enter
       visit(args)
+
       visit(body)
       @generator.return
       
@@ -182,9 +184,7 @@ class Verneuil::Compiler
     #
     def accept_args(*arg_names)
       arg_names.each do |name|
-        @generator.load name
-        @generator.roll 1
-        @generator.ruby_call_implicit :local_variable_set, 2
+        @generator.lvar_set name
       end
     end
     
