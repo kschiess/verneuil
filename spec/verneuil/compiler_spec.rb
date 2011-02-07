@@ -46,7 +46,7 @@ describe Verneuil::Compiler do
     let(:program) {
       generate { |g|
         g.load 1
-        g.dup 1
+        g.dup 0
         g.lvar_set :a
       }
     }

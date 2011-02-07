@@ -150,7 +150,7 @@ class Verneuil::Compiler
     #
     def accept_lasgn(name, val)
       visit(val)
-      @generator.dup 1
+      @generator.dup 0
       @generator.lvar_set name
     end
     

@@ -31,7 +31,7 @@ class Verneuil::Process
     instruction = fetch_and_advance
     dispatch(instruction)
   
-    # p [@ip, instruction, @stack, @call_stack]
+    p [@ip, instruction, @stack, @scope]
     
     instr_halt if @ip >= @program.size
     
@@ -168,6 +168,7 @@ class Verneuil::Process
   def instr_return
     exception "Nothing to return to on the call stack." if @call_stack.empty?
     @ip = @call_stack.pop
+    @scope = @scope.leave_scope
   end
 
   # Sets the local variable given by name. 

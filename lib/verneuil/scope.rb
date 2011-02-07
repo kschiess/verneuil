@@ -32,4 +32,9 @@ class Verneuil::Scope
   def method_call(name, *args)
     context.send(name, *args)
   end
+  
+  def inspect
+    "scope(#{@local_vars.inspect[2..-2]})" + 
+      (@parent ? "-> #{@parent.inspect}" : '')
+  end
 end
