@@ -170,7 +170,7 @@ class Verneuil::Compiler
       @compiler.add_function(name, args, @generator.current_adr)
 
       # Enters a new local scope and defines arguments
-      @generator.enter
+      @generator.enter true
       visit(args)
 
       visit(body)

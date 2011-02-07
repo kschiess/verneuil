@@ -6,7 +6,7 @@ class Verneuil::Process
   #
   def initialize(program, context)
     @program = program
-    @scope = Verneuil::Scope.new(context, {})
+    @scopes  = [Verneuil::Scope.new(context, {})]
     @ip = 0
     @stack = []
     @call_stack = []
@@ -31,7 +31,7 @@ class Verneuil::Process
     instruction = fetch_and_advance
     dispatch(instruction)
   
-    p [@ip, instruction, @stack, @scope]
+    # p [@ip, instruction, @stack, current_scope]
     
     instr_halt if @ip >= @program.size
     
@@ -86,13 +86,19 @@ class Verneuil::Process
     fail message
   end
   
+  # Returns the currently active scope. 
+  #
+  def current_scope
+    @scopes.last
+  end
+  
   # VM Implementation --------------------------------------------------------
   
   # A call to an implicit target, in this case the context. 
   #
   def instr_ruby_call_implicit(name, argc)
     args = @stack.pop(argc)
-    @stack.push @scope.method_call(name, *args)
+    @stack.push current_scope.method_call(name, *args)
   end
   
   # A call to an explicit receiver. The receiver should be on top of the stack. 
@@ -168,24 +174,29 @@ class Verneuil::Process
   def instr_return
     exception "Nothing to return to on the call stack." if @call_stack.empty?
     @ip = @call_stack.pop
-    @scope = @scope.leave_scope
+    @scopes.pop
   end
 
   # Sets the local variable given by name. 
   #
   def instr_lvar_set(name)
-    @scope.lvar_set(name, @stack.pop)
+    current_scope.lvar_set(name, @stack.pop)
   end
   
   # Returns the value of the local variable identified by name. 
   #
   def instr_lvar_get(name)
-    @stack.push @scope.lvar_get(name)
+    @stack.push current_scope.lvar_get(name)
   end
   
-  # Create a new local scope. 
+  # Create a new local scope. If hide is set to true, the current scope hides
+  # all other scopes; otherwise the current scope inherits the outer scope.
   #
-  def instr_enter
-    @scope = @scope.enter_scope
+  def instr_enter(hide)
+    if hide
+      @scopes.push Verneuil::Scope.new(current_scope.context)
+    else
+      @scopes.push @scope.enter
+    end
   end
 end

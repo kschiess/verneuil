@@ -71,7 +71,7 @@ describe Verneuil::Compiler do
       generate { |g|
         adr_end = g.fwd_adr
         g.jump adr_end
-        g.enter
+        g.enter true
         g.lvar_set :n
         g.lvar_get :n
         g.return 

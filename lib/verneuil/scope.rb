@@ -12,10 +12,10 @@ class Verneuil::Scope
     @parent = parent
   end
   
-  def enter_scope
+  def enter
     Verneuil::Scope.new(context, {}, self)
   end
-  def leave_scope
+  def leave
     return self unless @parent
     @parent
   end

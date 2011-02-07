@@ -3,5 +3,5 @@ def fib(n)
   fib(n-1) + fib(n-2) if n > 1
 end
 
-puts fib(n)
+fib(n)
 

@@ -2,8 +2,6 @@ require 'spec_helper'
 
 describe "Scoping" do
   class SpecScopingCtx < Hash
-    alias_method :local_variable_get, :"[]"
-    alias_method :local_variable_set, :"[]="
   end
   
   context "101" do

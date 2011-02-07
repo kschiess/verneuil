@@ -1,10 +1,7 @@
 require 'spec_helper'
 
 describe "Methods" do
-  class SpecMethCallContext < Hash
-    alias_method :local_variable_get, :"[]"
-    alias_method :local_variable_set, :"[]="
-    
+  class SpecMethCallContext
     attr_reader :n
     def initialize(n)
       super()
@@ -12,7 +9,7 @@ describe "Methods" do
     end
   end
   
-  context "101" do
+  context "101" do 
     it "should run and compute fibonacci series correctly" do
       # Ok, so this is f-d up, default values as variable contents... but it works.
       c = SpecMethCallContext.new(4)

@@ -15,13 +15,13 @@ describe Verneuil::Scope do
     end 
   end
 
-  describe "<- #enter_scope" do
+  describe "<- #enter" do
     it "should return a new scope" do
-      scope.enter_scope.should be_kind_of(described_class)
+      scope.enter.should be_kind_of(described_class)
     end
     
     describe "the returned scope" do
-      let(:inner_scope) { scope.enter_scope }
+      let(:inner_scope) { scope.enter }
       it "should not have variable :a defined" do
         lambda {
           inner_scope.lvar_get(:a)
@@ -29,9 +29,9 @@ describe Verneuil::Scope do
       end
     end
   end
-  describe "<- #leave_scope" do
-    let(:inner_scope) { scope.enter_scope }
-    subject { inner_scope.leave_scope }
+  describe "<- #leave" do
+    let(:inner_scope) { scope.enter }
+    subject { inner_scope.leave }
     it { should == scope }
     it "should still have :a" do
       subject.lvar_get(:a).should == 1
