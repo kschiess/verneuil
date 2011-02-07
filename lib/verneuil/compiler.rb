@@ -90,7 +90,6 @@ class Verneuil::Compiler
           visit(receiver)
           @generator.ruby_call method_name, argc
         else
-          argc = visit(args)
           @generator.ruby_call_implicit method_name, argc
         end
       end
@@ -149,9 +148,15 @@ class Verneuil::Compiler
     end
 
     # s(:lasgn, VARIABLE, VALUE) - assignment of local variables. 
+    # s(:lasgn, VARIABLE) - implicit assignment of local vars.
     #
-    def accept_lasgn(name, val)
-      visit(val)
+    def accept_lasgn(*args)
+      if args.size == 2
+        val = args.last
+        visit(val)
+      end
+
+      name = args.first
       @generator.dup 0
       @generator.lvar_set name
     end
@@ -221,8 +226,14 @@ class Verneuil::Compiler
       @generator.jump adr_end_of_block
       
       adr_start_of_block = @generator.current_adr
-      @generator.pop 1
-      visit(assigns) if assigns
+      @generator.pop 1 # pop off an artifact of the method we call this block with
+      
+      if assigns
+        type, *names = assigns
+        fail "BUG: Unsupported type of block arguments: #{type}" \
+          unless type == :lasgn
+        accept_args(*names)
+      end
       visit(block)
       @generator.return 
 

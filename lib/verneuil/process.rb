@@ -5,6 +5,8 @@ class Verneuil::Process
   # Create a process, giving it a program to run and a context to run in. 
   #
   def initialize(program, context)
+    # p program
+    
     # The program that is being executed.
     @program = program
     # Keeps the current scope and the ones before it.
@@ -36,10 +38,12 @@ class Verneuil::Process
   # it returns the programs return value. 
   #
   def step
+    # old_ip = @ip
+
     instruction = fetch_and_advance
     dispatch(instruction)
   
-    # p [@ip, instruction, @stack, current_scope]
+    # p [old_ip, instruction, @stack, current_scope]
     
     instr_halt if @ip >= @program.size
     
@@ -200,7 +204,6 @@ class Verneuil::Process
   # Returns the value of the local variable identified by name. 
   #
   def instr_lvar_get(name)
-    p current_scope
     @stack.push current_scope.lvar_get(name)
   end
   
@@ -218,7 +221,6 @@ class Verneuil::Process
   # Pushes a block context to the block stack. 
   #
   def instr_push_block(block_adr)
-    p [:push_block, current_scope]
     @blocks.push Verneuil::Block.new(block_adr, self, current_scope)
   end
   
