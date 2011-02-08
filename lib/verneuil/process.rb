@@ -128,6 +128,15 @@ class Verneuil::Process
     @ip = adr.ip
   end
 
+  # Calls the given address. (like a jump, but puts something on the return
+  # stack)
+  #
+  def call(adr, context=nil)
+    @scopes.push scope(context || current_scope.context)
+    @call_stack.push @ip
+    jump adr
+  end
+
   # VM Implementation --------------------------------------------------------
   
   # A call to an implicit target (self).
@@ -142,8 +151,7 @@ class Verneuil::Process
     # Verneuil method?
     v_method = @program.lookup_method(nil, name)
     if v_method
-      @call_stack.push @ip
-      jump v_method.address
+      call v_method.address
       return
     end
     
@@ -156,8 +164,19 @@ class Verneuil::Process
   #
   def instr_ruby_call(name, argc)
     receiver = @stack.pop
-    args     = @stack.pop(argc)
 
+    # Verneuil method? (class method mask)
+    v_method = @program.lookup_method(
+      receiver.class.name.to_sym, 
+      name)
+    if v_method
+      call v_method.address, receiver
+      return
+    end
+    
+    # Must be a Ruby method then. The catch allows internal classes like 
+    # Verneuil::Block to skip the stack.push.
+    args     = @stack.pop(argc)
     catch(:verneuil_code) {
       retval = receiver.send(name, *args)
       @stack.push retval
@@ -221,18 +240,7 @@ class Verneuil::Process
   def instr_lvar_set(name)
     current_scope.lvar_set(name, @stack.pop)
   end
-  
-  # Create a new local scope. If hide is set to true, the current scope hides
-  # all other scopes; otherwise the current scope inherits the outer scope.
-  #
-  def instr_enter(hide)
-    if hide
-      @scopes.push scope(current_scope.context)
-    else
-      @scopes.push @scope.enter
-    end
-  end
-  
+    
   # ------------------------------------------------------------------- BLOCKS 
   
   # Pushes a block context to the block stack. 
@@ -261,4 +269,14 @@ class Verneuil::Process
   def instr_halt
     @halted = true
   end
+
+  # ------------------------------------------------------ METHODS FOR CLASSES 
+  
+  # Loads the self on the stack. Toplevel self is the context you give, later
+  # on this may change to the class we're masking a method of. 
+  #
+  def instr_load_self
+    @stack.push current_scope.context
+  end
+  
 end

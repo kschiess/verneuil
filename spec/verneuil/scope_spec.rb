@@ -29,14 +29,6 @@ describe Verneuil::Scope do
       end
     end
   end
-  describe "<- #leave" do
-    let(:inner_scope) { scope.enter }
-    subject { inner_scope.leave }
-    it { should == scope }
-    it "should still have :a" do
-      subject.lvar_get(:a).should == 1
-    end 
-  end
   
   describe "delegation" do
     it "should delegate method calls to context" do

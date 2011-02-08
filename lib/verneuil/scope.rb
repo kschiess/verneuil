@@ -13,11 +13,7 @@ class Verneuil::Scope
   end
   
   def enter
-    Verneuil::Scope.new(context, {}, self)
-  end
-  def leave
-    return self unless @parent
-    @parent
+    Verneuil::Scope.new(context, {}, nil)
   end
   
   def lvar_exist?(name)

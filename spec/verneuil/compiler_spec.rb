@@ -12,6 +12,16 @@ describe Verneuil::Compiler do
 
     it { should == program }
   end
+  context "method call on self" do
+    let(:code) { "self.foo" }
+    let(:program) { generate do |g|
+      g.load_self
+      g.ruby_call :foo, 0
+    end }
+    subject { compiler.compile(code) }
+
+    it { should == program }
+  end
   context "block of code" do
     let(:code) { %Q(foo; bar; baz) }
     let(:program) { generate do |g|
@@ -25,6 +35,7 @@ describe Verneuil::Compiler do
 
     it { should == program }
   end
+
   context "if expression" do
     let(:code) { "if 1 then 2 else 3 end"}
     subject { compiler.compile(code) }
@@ -35,6 +46,28 @@ describe Verneuil::Compiler do
         g.load 2                        # 2
         g.jump g.abs_adr(5)             # 3
         g.load 3                        # 4
+      }
+    }
+    
+    it { should == program }
+  end
+  context "while expression" do
+    let(:code) { "body while test"}
+    subject { compiler.compile(code) }
+    let(:program) {
+      generate { |g|
+        adr_end = g.fwd_adr
+        adr_test = g.current_adr
+
+        # test
+        g.ruby_call_implicit :test, 0
+        g.jump_if_false adr_end
+        
+        # body
+        g.ruby_call_implicit :body, 0
+        
+        g.jump adr_test
+        adr_end.resolve
       }
     }
     
@@ -53,6 +86,32 @@ describe Verneuil::Compiler do
     
     it { should == program }
   end
+  context "or-assign" do
+    let(:code) { "a ||= 1"}
+    subject { compiler.compile(code) }
+    let(:program) {
+      generate { |g|
+        adr_end = g.fwd_adr
+        adr_else = g.fwd_adr
+        
+        g.test_lvar :a
+        g.jump_if_false adr_else
+        
+        g.ruby_call_implicit :a, 0
+        g.jump adr_end
+        
+        adr_else.resolve
+        g.load 1
+        
+        adr_end.resolve
+        g.dup 0
+        g.lvar_set :a
+      }
+    }
+    
+    it { should == program }
+  end
+
   context "call" do
     let(:code) { "1.succ"}
     subject { compiler.compile(code) }
@@ -71,7 +130,6 @@ describe Verneuil::Compiler do
       generate { |g|
         adr_end = g.fwd_adr
         g.jump adr_end
-        g.enter true
         g.lvar_set :n
         g.ruby_call_implicit :n, 0
         g.return 
@@ -109,7 +167,6 @@ describe Verneuil::Compiler do
         adr_start_of_fun = g.current_adr
         
         # Function 
-        g.enter true
         g.load_block
         g.lvar_set :block
         
@@ -147,26 +204,22 @@ describe Verneuil::Compiler do
 
     it { should == program }
   end
-  context "or-assign" do
-    let(:code) { "a ||= 1"}
+  context "class methods" do
+    let(:code) { "class Fixnum; def foo; succ; end end; 1.foo"}
     subject { compiler.compile(code) }
     let(:program) {
       generate { |g|
-        adr_end = g.fwd_adr
-        adr_else = g.fwd_adr
+        adr_main = g.fwd_adr
+        g.jump adr_main
         
-        g.test_lvar :a
-        g.jump_if_false adr_else
+        # foo body
+        g.ruby_call_implicit :succ, 0
+        g.return
         
-        g.ruby_call_implicit :a, 0
-        g.jump adr_end
+        adr_main.resolve
         
-        adr_else.resolve
         g.load 1
-        
-        adr_end.resolve
-        g.dup 0
-        g.lvar_set :a
+        g.ruby_call :foo, 0
       }
     }
     

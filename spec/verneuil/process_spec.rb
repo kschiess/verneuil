@@ -11,7 +11,7 @@ describe Verneuil::Process do
     let(:program) {
       generate { |g|
         adr_fun = g.fwd_adr
-        g.program.add_implicit_method :foo, adr_fun
+        g.program.add_method nil, :foo, adr_fun
         
         g.ruby_call_implicit :foo, 0
         g.halt
@@ -46,6 +46,19 @@ describe Verneuil::Process do
       s.should_receive(:lvar_get).with(:a).and_return(42)
       
       p.run.should == 42
+    end 
+  end
+  describe "self: refers to context outside of class methods" do
+    let(:program) {
+      generate { |g|
+        g.load_self
+        g.ruby_call :foo, 0
+      }
+    }
+    
+    it "should call :foo on the context" do
+      context.should_receive(:foo => :bar).once
+      process(program).run.should == :bar
     end 
   end
 

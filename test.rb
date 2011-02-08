@@ -1,5 +1,5 @@
 require 'ruby_parser'
-p RubyParser.new.parse('
-  def a; end
-  defined?(a)
+require 'pp'
+pp RubyParser.new.parse('
+  test while foo
 ')

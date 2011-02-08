@@ -36,11 +36,13 @@ class Verneuil::Compiler
   # by calling back on its code generator. 
   #
   class Visitor
-    NOPOP = [:return, :defn]
+    NOPOP = [:return, :defn, :class]
     
     def initialize(generator, compiler)
       @generator = generator
       @compiler = compiler
+      
+      @class_context = []
     end
     
     def visit(sexp)
@@ -124,6 +126,23 @@ class Verneuil::Compiler
       adr_end.resolve
     end
 
+    # s(:while, test, body, true) - a while statement. 
+    #
+    def accept_while(cond, body, t)
+      fail "What is t for?" unless t
+
+      adr_end = @generator.fwd_adr
+    
+      adr_test = @generator.current_adr
+      visit(cond)
+      @generator.jump_if_false adr_end
+      
+      visit(body)
+      @generator.jump adr_test
+      
+      adr_end.resolve
+    end
+    
     # s(:op_asgn_or, s(:lvar, :a), s(:lasgn, :a, s(:lit, 1))) - var ||= value.
     #
     def accept_op_asgn_or(variable, assign)
@@ -176,16 +195,33 @@ class Verneuil::Compiler
       adr_end = @generator.fwd_adr
       @generator.jump adr_end
       
-      @generator.program.add_implicit_method(name, @generator.current_adr)
+      @generator.program.add_method(
+        @class_context.last, 
+        name, 
+        @generator.current_adr)
 
       # Enters a new local scope and defines arguments
-      @generator.enter true
       visit(args)
 
       visit(body)
       @generator.return
       
       adr_end.resolve
+    end
+
+    # s(:class, :Fixnum, SUPER, s(:scope, s(:defn, :foo, s(:args), DEF))) - 
+    # a method definition for a class.
+    #
+    # NOTE that verneuils classes don't work like Rubies classes at all. This
+    # is more or less just a method for masking methods on Ruby classes, 
+    # not a way to define classes. 
+    #
+    def accept_class(name, _, scope)
+      @class_context.push name
+      
+      visit(scope)
+    ensure
+      @class_context.pop
     end
     
     # s(:args, ARGUMENT_NAMES) 
@@ -245,11 +281,23 @@ class Verneuil::Compiler
       @generator.pop_block
     end
 
+    # true.
+    #
     def accept_true
       @generator.load true
     end
+    
+    # false.
+    #
     def accept_false
       @generator.load false
     end
+    
+    # self
+    #
+    def accept_self
+      @generator.load_self
+    end
+    
   end
 end

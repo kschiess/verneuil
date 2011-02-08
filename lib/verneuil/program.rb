@@ -44,14 +44,14 @@ class Verneuil::Program
   
   # Defines a function. 
   #
-  def add_implicit_method(name, adr)
-    @functions[name] = Verneuil::Method.new(name, adr)
+  def add_method(klass, name, adr)
+    @functions[[klass, name]] = Verneuil::Method.new(klass, name, adr)
   end
   
   # Returns the function that matches the given receiver and method name. 
   #
   def lookup_method(recv, name)
-    @functions[name]
+    @functions[[recv, name]]
   end
   
   # Printing
@@ -59,7 +59,12 @@ class Verneuil::Program
   def inspect
     s = ''
     @instructions.each_with_index do |instruction, idx|
-      s << sprintf("%04d %s\n", idx, instruction)
+      method_label = ''
+      if entry=@functions.find { |(r,n), m| m.address.ip == idx }
+        m = entry.last
+        method_label = [m.receiver, m.name].inspect
+      end
+      s << sprintf("%20s %04d %s\n", method_label, idx, instruction)
     end
     s
   end
