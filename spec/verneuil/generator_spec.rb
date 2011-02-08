@@ -5,9 +5,9 @@ describe Verneuil::Generator do
   subject { generator.program.instructions }
   
   context "foo(:bar, :baz) (handles any kind of instruction)" do
-    before(:each) { generator.foo(:bar, :baz) }
+    before(:each) { generator.dup(:bar, :baz) }
      
-    it { should == [[:foo, :bar, :baz]]}
+    it { should == [[:dup, :bar, :baz]]}
   end
   describe "<- #fwd_adr" do
     subject { generator.fwd_adr }
@@ -20,7 +20,7 @@ describe Verneuil::Generator do
   end
   describe "<- #resolve(adr)" do
     let!(:adr) { generator.fwd_adr }
-    before(:each) { generator.foo; generator.bar }
+    before(:each) { generator.dup; generator.jump }
     before(:each) { generator.resolve(adr) }
     
     subject { adr }

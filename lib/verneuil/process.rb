@@ -43,7 +43,7 @@ class Verneuil::Process
     instruction = fetch_and_advance
     dispatch(instruction)
   
-    # p [old_ip, instruction, @stack, current_scope]
+    # p [old_ip, instruction, @stack, current_scope, @call_stack]
     
     instr_halt if @ip >= @program.size
     
@@ -104,17 +104,36 @@ class Verneuil::Process
     @scopes.last
   end
   
-  # Installs a scope temporarily.
+  # Enters a block. This pushes args to the stack, installs the scope given
+  # and jumps to adr. 
   #
-  def install_scope(scope)
-    @scopes.push scope
-  end
+  def enter_block(args, adr, scope)
+    args.each { |arg| @stack.push arg }
     
+    @scopes.push scope
+    
+    @call_stack.push @ip
+    jump adr
+  end
+  
+  # Jumps to the given address. 
+  #
+  def jump(adr)
+    @ip = adr.ip
+  end
+
   # VM Implementation --------------------------------------------------------
   
-  # A call to an implicit target, in this case the context. 
+  # A call to an implicit target (self).
   #
   def instr_ruby_call_implicit(name, argc)
+    v_method = @program.lookup_method(nil, name)
+    if v_method
+      @call_stack.push @ip
+      jump v_method.address
+      return
+    end
+    
     args = @stack.pop(argc)
     @stack.push current_scope.method_call(name, *args)
   end
@@ -125,25 +144,18 @@ class Verneuil::Process
     receiver = @stack.pop
     args     = @stack.pop(argc)
 
-    @stack.push receiver.send(name, *args)
+    catch(:verneuil_code) {
+      retval = receiver.send(name, *args)
+      @stack.push retval
+    }
   end
+  
+  # ------------------------------------------------------------ STACK CONTROL 
   
   # Pops n elements off the internal stack
   #
   def instr_pop(n)
     @stack.pop(n)
-  end
-  
-  # Rolls the stack contents starting at idx forward. 
-  #
-  # Example: 
-  #   ..., 3, 4, 5 becomes
-  #   ..., 5, 3, 4 
-  #   upon roll 2
-  #
-  def instr_roll(n)
-    i = -(n+1)
-    @stack[i..-1] = [@stack[-1], @stack[i..-2]].flatten
   end
   
   # Loads a literal value to the stack. 
@@ -159,13 +171,7 @@ class Verneuil::Process
     @stack.push @stack[-stack_idx-1]
   end
   
-  # Halts the processor and returns the last value on the stack. 
-  # 
-  def instr_halt
-    @halted = true
-  end
-
-  # JUMPS !!
+  # ----------------------------------------------------------------- JUMPS !!
   
   # Jumps to the given address if the top of the stack contains a false value.
   #
@@ -177,14 +183,7 @@ class Verneuil::Process
   # Unconditional jump
   #
   def instr_jump(adr)
-    @ip = adr.ip
-  end
-  
-  # Calling verneuil-methods.
-  #
-  def instr_call(adr)
-    @call_stack.push @ip
-    @ip = adr.ip
+    jump adr
   end
   
   # Returning from a method (pops the call_stack.)
@@ -194,6 +193,8 @@ class Verneuil::Process
     @ip = @call_stack.pop
     @scopes.pop
   end
+  
+  # ---------------------------------------------------------------- VARIABLES
 
   # Sets the local variable given by name. 
   #
@@ -218,12 +219,14 @@ class Verneuil::Process
     end
   end
   
+  # ------------------------------------------------------------------- BLOCKS 
+  
   # Pushes a block context to the block stack. 
   #
   def instr_push_block(block_adr)
     @blocks.push Verneuil::Block.new(block_adr, self, current_scope)
   end
-  
+
   # Loads the currently set implicit block to the stack. This is used when
   # turning an implicit block into an explicit block by storing it to a 
   # local variable. 
@@ -238,6 +241,10 @@ class Verneuil::Process
   def instr_pop_block
     @blocks.pop
   end
-  
-  
+
+  # Halts the processor and returns the last value on the stack. 
+  # 
+  def instr_halt
+    @halted = true
+  end
 end

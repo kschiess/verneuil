@@ -10,6 +10,7 @@ class Verneuil::Program
   
   def initialize
     @instructions = []
+    @functions = {}
   end
     
   # Make programs behave nicely with respect to comparison. 
@@ -41,9 +42,21 @@ class Verneuil::Program
     @instructions << instruction
   end
   
+  # Defines a function. 
+  #
+  def add_implicit_method(name, adr)
+    @functions[name] = Verneuil::Method.new(name, adr)
+  end
+  
+  # Returns the function that matches the given receiver and method name. 
+  #
+  def lookup_method(recv, name)
+    @functions[name]
+  end
+  
   # Printing
   # 
-  def to_s
+  def inspect
     s = ''
     @instructions.each_with_index do |instruction, idx|
       s << sprintf("%04d %s\n", idx, instruction)

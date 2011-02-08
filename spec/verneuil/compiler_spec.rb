@@ -88,8 +88,9 @@ describe Verneuil::Compiler do
     it { should == program }
     
     context "function :foo" do
-      before(:each) { compiler.compile(code) }
-      subject { compiler.functions[:foo] }
+      let(:program) { compiler.compile(code) }
+      subject { program.lookup_method(nil, :foo) }
+      
       its(:name)    { should == :foo }
       it "should point to the address of the function" do
         subject.address.ip.should == 1

@@ -9,11 +9,8 @@ class Verneuil::Block
   end
   
   def call(*args)
-    @process.install_scope(@scope) 
-    args.each do |arg|
-      @process.instance_variable_get('@stack').push arg
-    end
-    @process.instr_call(@adr)
+    @process.enter_block(args, @adr, @scope)
+    throw :verneuil_code
   end
   
   def inspect

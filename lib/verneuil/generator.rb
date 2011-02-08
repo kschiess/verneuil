@@ -1,4 +1,6 @@
 
+require 'verneuil/process'
+
 # A generator for VM code. 
 #
 class Verneuil::Generator
@@ -39,13 +41,7 @@ class Verneuil::Generator
   def resolve(adr)
     adr.ip = program.size
   end
-  
-  # Override built in dup. 
-  #
-  def dup(n)
-    add_instruction :dup, n
-  end
-  
+    
   # This implements many of the instruction methods that are just one-to-one
   # correspondances between methods on the generator and the instructions in
   # the stream. 
@@ -54,9 +50,11 @@ class Verneuil::Generator
   #   generator.foo 1,2,3
   #   # will add [:foo, 1,2,3] to the instruction stream. 
   #
-  def method_missing(sym, *args, &block)
-    super if block
-    
-    add_instruction sym, *args
-  end
+  Verneuil::Process.instance_methods.
+    select { |method| method.to_s =~ /^instr_(.*)/ }.
+    map { |method| method.to_s[6..-1].to_sym }.each do |instruction|
+      define_method(instruction) do |*args|
+        add_instruction instruction, *args
+      end
+    end
 end

@@ -10,12 +10,16 @@ describe Verneuil::Process do
   describe "function calls inside verneuil" do
     let(:program) {
       generate { |g|
-        g.call g.abs_adr(2)
+        adr_fun = g.fwd_adr
+        g.program.add_implicit_method :foo, adr_fun
+        
+        g.ruby_call_implicit :foo, 0
         g.halt
+        
+        adr_fun.resolve
         g.load 2
         g.return 
-        g.load 1
-        g.return
+        g.load 1    # sentinel to guard against a disfunctional return
       }
     }
     

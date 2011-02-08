@@ -4,23 +4,8 @@ require 'ruby_parser'
 # Compiles verneuil code into a program. 
 #
 class Verneuil::Compiler
-  attr_reader :functions
-  
   def initialize
     @generator = Verneuil::Generator.new
-    @functions = {}
-  end
-  
-  # Defines a function. 
-  #
-  def add_function(name, args, adr)
-    functions[name] = Verneuil::Method.new(name, args, adr)
-  end
-  
-  # Returns the function that matches the given receiver and method name. 
-  #
-  def lookup_function(recv, name)
-    functions[name]
   end
   
   def program
@@ -166,7 +151,7 @@ class Verneuil::Compiler
       adr_end = @generator.fwd_adr
       @generator.jump adr_end
       
-      @compiler.add_function(name, args, @generator.current_adr)
+      @generator.program.add_implicit_method(name, @generator.current_adr)
 
       # Enters a new local scope and defines arguments
       @generator.enter true
