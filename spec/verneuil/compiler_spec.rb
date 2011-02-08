@@ -73,7 +73,7 @@ describe Verneuil::Compiler do
         g.jump adr_end
         g.enter true
         g.lvar_set :n
-        g.lvar_get :n
+        g.ruby_call_implicit :n, 0
         g.return 
         g.load 1
         g.return
@@ -115,7 +115,7 @@ describe Verneuil::Compiler do
         
         # translates: block.call(1)
         g.load 1 
-        g.lvar_get :block
+        g.ruby_call_implicit :block, 0
         g.ruby_call :call, 1
         g.return
         
@@ -132,7 +132,7 @@ describe Verneuil::Compiler do
         adr_start_of_block = g.current_adr
         
         # Block
-        g.lvar_get :a
+        g.ruby_call_implicit :a, 0
         g.return
         
         adr_after_block.resolve
@@ -145,6 +145,31 @@ describe Verneuil::Compiler do
     }
     subject { compiler.compile(code) }
 
+    it { should == program }
+  end
+  context "or-assign" do
+    let(:code) { "a ||= 1"}
+    subject { compiler.compile(code) }
+    let(:program) {
+      generate { |g|
+        adr_end = g.fwd_adr
+        adr_else = g.fwd_adr
+        
+        g.test_lvar :a
+        g.jump_if_false adr_else
+        
+        g.ruby_call_implicit :a, 0
+        g.jump adr_end
+        
+        adr_else.resolve
+        g.load 1
+        
+        adr_end.resolve
+        g.dup 0
+        g.lvar_set :a
+      }
+    }
+    
     it { should == program }
   end
 

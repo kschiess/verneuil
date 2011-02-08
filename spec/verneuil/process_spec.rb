@@ -27,7 +27,28 @@ describe Verneuil::Process do
       process(program).run.should == 2
     end 
   end
-  
+  describe "local variable access" do
+    let(:program) {
+      generate { |g|
+        g.ruby_call_implicit :a, 0
+      }
+    }
+    
+    it "should return the value of :a" do
+      p = Verneuil::Process.allocate
+      
+      s = flexmock(:scope)
+      flexmock(p).should_receive(:scope => s)
+      
+      p.send :initialize, program, context
+            
+      s.should_receive(:lvar_exist?).with(:a).and_return(true)
+      s.should_receive(:lvar_get).with(:a).and_return(42)
+      
+      p.run.should == 42
+    end 
+  end
+
   describe "<- #run" do
     it "should stop as soon as the program is done" do
       empty = Verneuil::Program.new

@@ -20,6 +20,9 @@ class Verneuil::Scope
     @parent
   end
   
+  def lvar_exist?(name)
+    @local_vars.has_key?(name)
+  end
   def lvar_get(name)
     raise Verneuil::NameError, "No such local variable #{name.inspect}." \
       unless @local_vars.has_key?(name)
@@ -27,6 +30,11 @@ class Verneuil::Scope
   end
   def lvar_set(name, value)
     @local_vars[name] = value
+  end
+  def defined?(name)
+    return 'local-variable' if lvar_exist?(name)
+    return 'method' if context.respond_to?(name)
+    nil
   end
 
   def method_call(name, *args)

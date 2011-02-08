@@ -10,7 +10,7 @@ class Verneuil::Process
     # The program that is being executed.
     @program = program
     # Keeps the current scope and the ones before it.
-    @scopes  = [Verneuil::Scope.new(context, {})]
+    @scopes  = [scope(context)]
     # Keeps implicit blocks when executing iteration code. 
     @blocks  = []
     # Value stack
@@ -98,6 +98,12 @@ class Verneuil::Process
     fail message
   end
   
+  # Produces a new scope that links to the given context. 
+  #
+  def scope(context)
+    Verneuil::Scope.new(context)
+  end
+  
   # Returns the currently active scope. 
   #
   def current_scope
@@ -127,6 +133,13 @@ class Verneuil::Process
   # A call to an implicit target (self).
   #
   def instr_ruby_call_implicit(name, argc)
+    # Local variable
+    if argc==0 && current_scope.lvar_exist?(name)
+      @stack.push current_scope.lvar_get(name)
+      return
+    end
+    
+    # Verneuil method?
     v_method = @program.lookup_method(nil, name)
     if v_method
       @call_stack.push @ip
@@ -134,6 +147,7 @@ class Verneuil::Process
       return
     end
     
+    # Ruby method! (or else)
     args = @stack.pop(argc)
     @stack.push current_scope.method_call(name, *args)
   end
@@ -196,16 +210,16 @@ class Verneuil::Process
   
   # ---------------------------------------------------------------- VARIABLES
 
+  # Tests if the local variable exists. Puts true/false to the stack. 
+  #
+  def instr_test_lvar(name)
+    @stack.push current_scope.defined?(name)
+  end
+
   # Sets the local variable given by name. 
   #
   def instr_lvar_set(name)
     current_scope.lvar_set(name, @stack.pop)
-  end
-  
-  # Returns the value of the local variable identified by name. 
-  #
-  def instr_lvar_get(name)
-    @stack.push current_scope.lvar_get(name)
   end
   
   # Create a new local scope. If hide is set to true, the current scope hides
@@ -213,7 +227,7 @@ class Verneuil::Process
   #
   def instr_enter(hide)
     if hide
-      @scopes.push Verneuil::Scope.new(current_scope.context)
+      @scopes.push scope(current_scope.context)
     else
       @scopes.push @scope.enter
     end

@@ -26,7 +26,12 @@ end
 # Returns the code of a sample program (in spec/programs).
 #
 def sample(*names)
-  File.read(
-    File.join(
-      File.dirname(__FILE__), 'programs', *names))
+  File.read(sample_path(*names))
+end
+
+# Returns the path to a sample program. 
+#
+def sample_path(*names)
+  File.join(
+    File.dirname(__FILE__), 'programs', *names)
 end

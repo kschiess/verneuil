@@ -124,6 +124,30 @@ class Verneuil::Compiler
       adr_end.resolve
     end
 
+    # s(:op_asgn_or, s(:lvar, :a), s(:lasgn, :a, s(:lit, 1))) - var ||= value.
+    #
+    def accept_op_asgn_or(variable, assign)
+      (*), var, val = assign
+      visit(
+        s(:lasgn, var, 
+          s(:if, 
+            s(:defined, variable), 
+            variable, 
+            val)))
+    end
+    
+    # s(:defined, s(:lvar, :a)) - test if a local variable is defined. 
+    #
+    def accept_defined(variable)
+      type, var = variable
+      
+      raise NotImplementedError, "defined? only defined for local variables." \
+        unless type == :lvar
+
+      # assert: type == :lvar
+      @generator.test_lvar var
+    end
+    
     # s(:lasgn, VARIABLE, VALUE) - assignment of local variables. 
     # s(:lasgn, VARIABLE) - implicit assignment of local vars.
     #
@@ -141,7 +165,8 @@ class Verneuil::Compiler
     # s(:lvar, VARIABLE) - local variable access.
     #
     def accept_lvar(name)
-      @generator.lvar_get name
+      visit(
+        s(:call, nil, name, s(:arglist)))
     end
 
     # s(:defn, NAME, ARG_NAMES, BODY) - a method definition.
