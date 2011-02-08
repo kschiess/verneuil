@@ -28,7 +28,7 @@ SYNOPSIS
   
 STATUS
 
-At version 0.1 and by no means ready for production. May or may not work, 
+At version pre 0.1 and by no means ready for production. May or may not work, 
 depending on time of day. 
 
 Verneuil currently handles all the programs in spec/programs. The following
@@ -38,5 +38,8 @@ Ruby features should work:
  * Local variables
  * Method definitions
  * if then else
+ * while
+ * Masking class methods 
+ * correct self
 
 (c) 2011 Kaspar Schiess

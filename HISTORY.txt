@@ -1,0 +1,6 @@
+== 0.1.0 / 8Feb11
+
+  * Initial version, supporting a rather large subset of ruby already. 
+    Getting this out so I can base later releases on something. 
+    
+  * Not production ready, the paint is still fresh on this one. 

@@ -16,7 +16,7 @@ Gem::Specification.new do |s|
   s.rubygems_version = '1.3.7'
   s.summary = 'Artificial Rubies. Using a fusion process.'  
   
-  s.add_dependency 'blankslate', '~> 2.0'
+  s.add_dependency 'ruby_parser', '~> 2.0'
   
   s.add_development_dependency 'rspec'
   s.add_development_dependency 'flexmock'
