@@ -80,7 +80,7 @@ describe Verneuil::Compiler do
         
         g.resolve adr_end
         g.load 1
-        g.call g.abs_adr(1)
+        g.ruby_call_implicit :foo, 1
       }
     }
     subject { compiler.compile(code) }
@@ -131,7 +131,6 @@ describe Verneuil::Compiler do
         adr_start_of_block = g.current_adr
         
         # Block
-        g.pop 1       # calling the block leaves a return value on the stack. 
         g.lvar_get :a
         g.return
         
@@ -139,7 +138,7 @@ describe Verneuil::Compiler do
                 
         # translates: foo { a }
         g.push_block adr_start_of_block
-        g.call adr_start_of_fun
+        g.ruby_call_implicit :foo, 0
         g.pop_block
       }
     }

@@ -63,9 +63,10 @@ class Verneuil::Compiler
       
       sym = "accept_#{type}".to_sym
       
-      unless respond_to? sym
-        raise NotImplementedError, "No acceptor for #{sexp}"
-      end
+      raise ArgumentError, "No sexp given?" unless sexp && type
+      
+      raise NotImplementedError, "No acceptor for #{sexp}." \
+        unless respond_to? sym
 
       self.send(sym, *args)
     end
@@ -78,20 +79,11 @@ class Verneuil::Compiler
     def accept_call(receiver, method_name, args)
       argc = visit(args)
       
-      # Method resolution: 
-      # Tries V-methods first, followed by fallback on Ruby methods (sent 
-      # to the context if no receiver was given).
-
-      method = @compiler.lookup_function(receiver, method_name)
-      if method
-        @generator.call method.address
+      if receiver
+        visit(receiver)
+        @generator.ruby_call method_name, argc
       else
-        if receiver
-          visit(receiver)
-          @generator.ruby_call method_name, argc
-        else
-          @generator.ruby_call_implicit method_name, argc
-        end
+        @generator.ruby_call_implicit method_name, argc
       end
     end
     
@@ -219,14 +211,11 @@ class Verneuil::Compiler
     # a method with a block. 
     #
     def accept_iter(call, assigns, block)
-      # Create a block structure that can be pushed to the block stack. 
-      adr_end_of_block = @generator.fwd_adr
-
       # Jump over the block code
+      adr_end_of_block = @generator.fwd_adr
       @generator.jump adr_end_of_block
       
       adr_start_of_block = @generator.current_adr
-      @generator.pop 1 # pop off an artifact of the method we call this block with
       
       if assigns
         type, *names = assigns
@@ -237,14 +226,12 @@ class Verneuil::Compiler
       visit(block)
       @generator.return 
 
-      # Push block structure. 
       adr_end_of_block.resolve
+      
+      # Compile the call as we would normally, adding a push_block/pop_block
+      # around it. 
       @generator.push_block adr_start_of_block
-      
-      # Compile the call as we would normally.
       visit(call)
-      
-      # Remove the block.
       @generator.pop_block
     end
 
