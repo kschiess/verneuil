@@ -48,6 +48,12 @@ class Verneuil::Process
     halted? ? @stack.last : nil
   end
   
+  # Override Kernel.fork here so that nobody forks for real without wanting
+  # to. 
+  def self.fork(*args, &block)
+    fail "BUG: Forking inside verneuil code should not call Kernel.fork."
+  end
+  
   # Returns true if the process has halted because it has reached its end.
   #
   def halted?

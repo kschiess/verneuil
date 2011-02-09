@@ -68,6 +68,21 @@ class Verneuil::Compiler
     
     #--------------------------------------------------------- visitor methods
     
+    # s(:colon2, s(:const, :Verneuil), :Process) - access something inside
+    # a namespace. Constants are resolved at compile time!
+    #
+    def accept_colon2(left, right)
+      left_const = visit(left)
+      const = left_const.const_get(right)
+      @generator.load const
+    end
+    
+    # s(:const, :Verneuil) - Resolve a constant globally and return it. 
+    #
+    def accept_const(const)
+      eval(const.to_s)
+    end
+    
     # s(:call, RECEIVER, NAME, ARGUMENTS) - Method calls with or without
     # receiver.
     # 
@@ -278,7 +293,7 @@ class Verneuil::Compiler
     # s(:iter, s(:call, RECEIVER, METHOD, ARGUMENTS), ASSIGNS, BLOCK) - call
     # a method with a block. 
     #
-    def accept_iter(call, assigns, block)
+    def accept_iter(call, assigns, block=nil)
       # Jump over the block code
       adr_end_of_block = @generator.fwd_adr
       @generator.jump adr_end_of_block
@@ -291,7 +306,7 @@ class Verneuil::Compiler
           unless type == :lasgn
         accept_args(*names)
       end
-      visit(block)
+      visit(block) if block
       @generator.return 
 
       adr_end_of_block.resolve
