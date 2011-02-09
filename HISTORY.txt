@@ -1,3 +1,7 @@
+== 0.2.0 / ???
+  
+  * Call 'verneuil' with your code as argument to execute a script in V. 
+
 == 0.1.0 / 8Feb11
 
   * Initial version, supporting a rather large subset of ruby already. 
