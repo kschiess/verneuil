@@ -55,7 +55,15 @@ class Verneuil::Compiler
       raise NotImplementedError, "No acceptor for #{sexp}." \
         unless respond_to? sym
 
-      self.send(sym, *args)
+      begin
+        self.send(sym, *args)
+      rescue ArgumentError => ex
+        if md=ex.message.match(/wrong number of arguments \(([^)]+)\)/)
+          sexp_skeleton = s(sexp[0], *sexp[1..-1].map { |e| e && s(e.first, '...') })
+          raise ArgumentError, "wrong number of elements in #{sexp_skeleton} (#{md[1]})."
+        end
+        raise
+      end
     end
     
     #--------------------------------------------------------- visitor methods
