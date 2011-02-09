@@ -105,6 +105,14 @@ class Verneuil::Compiler
       @generator.load value
     end
 
+    # s(:array, ELEMENTS) - array literal. 
+    # 
+    def accept_array(*elements)
+      elements.each { |el| visit(el) }
+      @generator.load Array
+      @generator.ruby_call :"[]", elements.size
+    end
+
     # s(:if, COND, THEN, ELSE) - an if statement
     #
     def accept_if(cond, _then, _else)
@@ -157,14 +165,20 @@ class Verneuil::Compiler
     
     # s(:defined, s(:lvar, :a)) - test if a local variable is defined. 
     #
-    def accept_defined(variable)
-      type, var = variable
-      
-      raise NotImplementedError, "defined? only defined for local variables." \
-        unless type == :lvar
-
-      # assert: type == :lvar
-      @generator.test_lvar var
+    def accept_defined(exp)
+      type, * = exp
+      case type
+        when :call
+          # s(:call, nil, :a, s(:arglist))
+          @generator.test_defined exp[2]
+        when :lvar
+          # s(:lvar, :a)
+          @generator.test_defined exp.last
+        when :lit
+          @generator.load 'expression'
+      else
+        fail "Don't know how to implement defined? with #{variable.inspect}."
+      end
     end
     
     # s(:lasgn, VARIABLE, VALUE) - assignment of local variables. 

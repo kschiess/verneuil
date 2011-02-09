@@ -38,12 +38,10 @@ class Verneuil::Process
   # it returns the programs return value. 
   #
   def step
-    # old_ip = @ip
-
     instruction = fetch_and_advance
     dispatch(instruction)
   
-    # p [old_ip, instruction, @stack, current_scope, @call_stack]
+    # p [@ip, instruction, @stack, current_scope, @call_stack]
     
     instr_halt if @ip >= @program.size
     
@@ -103,7 +101,7 @@ class Verneuil::Process
   def scope(context)
     Verneuil::Scope.new(context)
   end
-  
+    
   # Returns the currently active scope. 
   #
   def current_scope
@@ -129,7 +127,7 @@ class Verneuil::Process
   end
 
   # Calls the given address. (like a jump, but puts something on the return
-  # stack)
+  # stack) If context is left empty, it will call inside the current context.
   #
   def call(adr, context=nil)
     @scopes.push scope(context || current_scope.context)
@@ -231,7 +229,7 @@ class Verneuil::Process
 
   # Tests if the local variable exists. Puts true/false to the stack. 
   #
-  def instr_test_lvar(name)
+  def instr_test_defined(name)
     @stack.push current_scope.defined?(name)
   end
 
@@ -246,7 +244,10 @@ class Verneuil::Process
   # Pushes a block context to the block stack. 
   #
   def instr_push_block(block_adr)
-    @blocks.push Verneuil::Block.new(block_adr, self, current_scope)
+    @blocks.push Verneuil::Block.new(
+      block_adr, 
+      self, 
+      current_scope.child)
   end
 
   # Loads the currently set implicit block to the stack. This is used when

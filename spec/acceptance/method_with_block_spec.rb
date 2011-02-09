@@ -4,6 +4,11 @@ describe "Methods that take blocks" do
   context "101" do
     it "should run and return 4" do
       process(sample('method_with_block.rb'), nil).run.should == 4
+    end
+  end
+  context "blocks 02" do
+    it "should run and return nil" do
+      process(sample('blocks_02.rb'), self).run.should == nil
     end 
   end
   context "nesting blocks" do

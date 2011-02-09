@@ -2,7 +2,38 @@ require 'spec_helper'
 
 describe Verneuil::Scope do
   let(:context) { flexmock(:context) }
-  let(:scope) { described_class.new(context, :a => 1) }
+  let(:scope) { described_class.new(context, :a => 1, :b => 2) }
+
+  context "when constructed with a parent" do
+    let(:inner) { scope.child(:b => 3) }
+    
+    it "should return 1 for :a" do
+      inner.lvar_get(:a).should == 1
+    end
+    it "should return 3 for :b" do
+      inner.lvar_get(:b).should == 3
+    end
+    
+    context "when setting :a, :b and :c" do
+      before(:each) { 
+        inner.lvar_set(:a, 42) 
+        inner.lvar_set(:b, 42) 
+        inner.lvar_set(:c, 42) 
+      }
+      it "should modify :a in outer scope" do
+        inner.lvar_get(:a).should == 42
+        scope.lvar_get(:a).should == 42
+      end
+      it "should leave :b in outer scope intact" do
+        inner.lvar_get(:b).should == 42
+        scope.lvar_get(:b).should == 2
+      end
+      it "should set :c only in inner scope" do
+        inner.lvar_get(:c).should == 42
+        lambda { scope.lvar_get(:c) }.should raise_error
+      end 
+    end  
+  end
   
   describe "<- #lvar_get(name)" do
     subject { scope.lvar_get(:a) }
@@ -13,21 +44,6 @@ describe Verneuil::Scope do
       scope.lvar_set(:a, 42)
       scope.lvar_get(:a).should == 42
     end 
-  end
-
-  describe "<- #enter" do
-    it "should return a new scope" do
-      scope.enter.should be_kind_of(described_class)
-    end
-    
-    describe "the returned scope" do
-      let(:inner_scope) { scope.enter }
-      it "should not have variable :a defined" do
-        lambda {
-          inner_scope.lvar_get(:a)
-        }.should raise_error(Verneuil::NameError) 
-      end
-    end
   end
   
   describe "delegation" do

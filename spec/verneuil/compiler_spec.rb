@@ -36,6 +36,21 @@ describe Verneuil::Compiler do
     it { should == program }
   end
 
+  context "array construction" do
+    let(:code) { "[1,2,3]"}
+    subject { compiler.compile(code) }
+    let(:program) {
+      generate { |g|
+        g.load 1
+        g.load 2
+        g.load 3
+        g.load Array
+        g.ruby_call :"[]", 3 
+      }
+    }
+    
+    it { should == program }
+  end
   context "if expression" do
     let(:code) { "if 1 then 2 else 3 end"}
     subject { compiler.compile(code) }
@@ -94,7 +109,7 @@ describe Verneuil::Compiler do
         adr_end = g.fwd_adr
         adr_else = g.fwd_adr
         
-        g.test_lvar :a
+        g.test_defined :a
         g.jump_if_false adr_else
         
         g.ruby_call_implicit :a, 0
@@ -110,6 +125,29 @@ describe Verneuil::Compiler do
     }
     
     it { should == program }
+  end
+
+  context "defined?(1)" do
+    let(:code) { "defined?(1)"}
+    let(:program) {
+      generate { |g|
+        g.load 'expression'
+      }
+    }
+    it "should compile into the given program" do
+      compiler.compile(code).should == program
+    end 
+  end
+  context "defined?(a)" do
+    let(:code) { "defined?(a)"}
+    let(:program) {
+      generate { |g|
+        g.test_defined :a
+      }
+    }
+    it "should compile into the given program" do
+      compiler.compile(code).should == program
+    end 
   end
 
   context "call" do
