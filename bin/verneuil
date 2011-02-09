@@ -1,0 +1,23 @@
+#!/usr/bin/env ruby
+
+require 'verneuil'
+
+verbose = false
+if ARGV.first == '-v'
+  verbose = true 
+  ARGV.shift
+end
+
+program = Verneuil::Compiler.compile(ARGF.read)
+if verbose
+  p program
+  puts
+end
+
+process = Verneuil::Process.new(program, nil)
+retval = process.run
+
+if verbose
+  puts
+  puts "Program returned #{retval.inspect}." 
+end
