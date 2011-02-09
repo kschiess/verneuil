@@ -7,23 +7,11 @@ def fib(n)
   fib(n-1) + fib(n-2) if n > 1
 end
 
-puts fib(2)
+puts fib(10)
 RUBY
 
-class Context
-  def initialize
-    @vars = {}
-  end
-  def local_variable_get(name)
-    @vars[name]
-  end
-  def local_variable_set(name, value)
-    @vars[name] = value
-  end
-end
-
 program = Verneuil::Compiler.compile(code)
-puts program
+puts program.inspect
 puts
-process = Verneuil::Process.new(program, Context.new)
+process = Verneuil::Process.new(program, nil)
 process.run
