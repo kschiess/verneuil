@@ -2,6 +2,16 @@ require 'spec_helper'
 
 describe Verneuil::Compiler do
   let(:compiler) { described_class.new }
+
+  context "literal nil" do
+    let(:code) { %Q(nil) }
+    let(:program) { generate do |g|
+      g.load nil
+    end }
+    subject { compiler.compile(code) }
+
+    it { should == program }
+  end
   
   context "simple method call" do
     let(:code) { %Q(foo) }

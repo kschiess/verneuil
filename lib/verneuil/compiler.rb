@@ -335,6 +335,11 @@ class Verneuil::Compiler
     def accept_self
       @generator.load_self
     end
-    
+   
+    # nil
+    #
+    def accept_nil
+      @generator.load nil
+    end
   end
 end
