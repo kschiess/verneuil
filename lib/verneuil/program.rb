@@ -51,7 +51,13 @@ class Verneuil::Program
   # Returns the function that matches the given receiver and method name. 
   #
   def lookup_method(recv, name)
-    @functions[[recv, name]]
+    key = if recv
+      [recv.class.name.to_sym, name]
+    else
+      [nil, name]
+    end
+    
+    @functions[key]
   end
   
   # Printing

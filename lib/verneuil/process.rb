@@ -50,6 +50,7 @@ class Verneuil::Process
   
   # Override Kernel.fork here so that nobody forks for real without wanting
   # to. 
+  #
   def self.fork(*args, &block)
     fail "BUG: Forking inside verneuil code should not call Kernel.fork."
   end
@@ -154,10 +155,7 @@ class Verneuil::Process
     
     # Verneuil method?
     v_method = @program.lookup_method(nil, name)
-    if v_method
-      call v_method.address
-      return
-    end
+    return v_method.invoke(self, nil) if v_method
     
     # Ruby method! (or else)
     args = @stack.pop(argc)
@@ -168,15 +166,15 @@ class Verneuil::Process
   #
   def instr_ruby_call(name, argc)
     receiver = @stack.pop
+    
+    # TODO Fix argument count handling
+    # Currently the caller decides with how many arguments he calls the
+    # block and the callee pops off the stack what he wants. This is not a
+    # good situation.
 
     # Verneuil method? (class method mask)
-    v_method = @program.lookup_method(
-      receiver.class.name.to_sym, 
-      name)
-    if v_method
-      call v_method.address, receiver
-      return
-    end
+    v_method = @program.lookup_method(receiver, name)
+    return v_method.invoke(self, receiver) if v_method
     
     # Must be a Ruby method then. The catch allows internal classes like 
     # Verneuil::Block to skip the stack.push.
@@ -287,3 +285,5 @@ class Verneuil::Process
   end
   
 end
+
+# require 'verneuil/process/fork'

@@ -11,10 +11,11 @@ describe Verneuil::Program do
       method.should_not be_nil
     end 
     it "should handle addition of explicit methods (associated to a class)" do
-      program.lookup_method(:Foo, :bar).should be_nil
+      class Foo; end
+      program.lookup_method(Foo.new, :bar).should be_nil
       program.add_method(:Foo, :bar, flexmock(:adr))
 
-      method = program.lookup_method(:Foo, :bar)
+      method = program.lookup_method(Foo.new, :bar)
       method.should_not be_nil
     end 
   end
