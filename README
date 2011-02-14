@@ -41,7 +41,7 @@ Ruby features should work:
  * while
  * Masking class methods 
  * correct self
- * fork
+ * fork, join
  
 CONTRIBUTORS
 
