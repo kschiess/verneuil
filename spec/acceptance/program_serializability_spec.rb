@@ -15,7 +15,7 @@ describe "Program serializability" do
         p = process(File.read(sample_name), nil)
         
         until p.halted?
-          p.step
+          p.group.step
           
           Marshal.dump p
         end

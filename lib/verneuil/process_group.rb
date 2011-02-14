@@ -26,9 +26,11 @@ class Verneuil::ProcessGroup
     idx =  @counter % list.size
     
     if list[idx].step
+      # Child tree has finished 'one round' of stepping, carry over 
       @counter += 1
     end
     
+    # Should we return a carry to our parent?
     if @counter >= list.size
       @counter = 0
       return true

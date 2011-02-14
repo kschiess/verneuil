@@ -9,5 +9,5 @@
 #   child.join # waits and eventually returns 42
 #
 Verneuil::Process.kernel_method :'Verneuil::Process', :join do |parent, child|
-  
+  parent.joining << child
 end

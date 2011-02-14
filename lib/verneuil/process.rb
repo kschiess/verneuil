@@ -23,6 +23,8 @@ class Verneuil::Process
     @halted = false
     # This process' children
     @children = []
+    # The list of processes that this process waits for currently. 
+    @joining = []
   end
 
   # Instruction pointer
@@ -30,6 +32,9 @@ class Verneuil::Process
   
   # A process is also a process group, containing its children. 
   attr_reader :children
+  
+  # The list of processes that this process waits for currently. 
+  attr_reader :joining
   
   # Runs the program until it completes and returns the last expression
   # in the program.
@@ -42,18 +47,24 @@ class Verneuil::Process
     @stack.last
   end
   
-  # Runs one instruction and returns nil. If this was the last instruction, 
-  # it returns the programs return value. 
+  # Runs one instruction. If the current process waits on another process
+  # (joining not empty), it will run an instruction in the other process
+  # instead.
   #
   def step
+    verify_wait_conditions
+    
+    if waiting?
+      joining.first.step
+      return 
+    end
+    
     instruction = fetch_and_advance
     dispatch(instruction)
   
-    # p [@ip, instruction, @stack, current_scope, @call_stack]
+    # p [self, instruction, @stack, @call_stack, current_scope]
     
-    instr_halt unless instruction_pointer_valid?
-    
-    halted? ? @stack.last : nil
+    instr_halt if !waiting? && !instruction_pointer_valid?
   end
   
   # Returns true if the process has halted because it has reached its end.
@@ -61,8 +72,25 @@ class Verneuil::Process
   def halted?
     !!@halted
   end
+
+  # Returns true if the process waits for something to happen.
+  #
+  def waiting?
+    not @joining.empty?
+  end
+  
+  # Once the process has halted?, this returns the top of the stack. This is 
+  # like the return value of the process. 
+  #
+  def value
+    @stack.last
+  end
   
   # Internal helper methods --------------------------------------------------
+  
+  def verify_wait_conditions
+    @joining.delete_if { |process| process.halted? }
+  end
   
   # Returns the process group having this process as root node. 
   #
@@ -195,7 +223,7 @@ class Verneuil::Process
   #
   def confine(address)
     @ip = address.ip
-    @call_stack.push -1
+    @call_stack.push(-1)
   end
   
   # Pushes a return value to the value stack. 
@@ -209,6 +237,12 @@ class Verneuil::Process
   def instruction_pointer_valid?
     @ip >= 0 && 
       @ip < @program.size
+  end
+
+  # Inspection of processes
+  #
+  def inspect
+    "process(#{object_id}, #{@ip}, #{@call_stack}, w:#{@joining.size}, c:#{children.size}, h:#{halted?})"
   end
 
   # VM Implementation --------------------------------------------------------

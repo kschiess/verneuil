@@ -96,8 +96,10 @@ describe Verneuil::Process do
       p1 = process(program)
       
       context.should_receive(:foo => 42)
-      p1.step.should == 42
+      p1.run 
+      
       p1.should be_halted
+      p1.value.should == 42
     end 
     it "should halt the machine if the ip is negative" do
       program = generate do |g|
