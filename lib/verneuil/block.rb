@@ -4,6 +4,7 @@
 class Verneuil::Block
   # At what address does the block code start?
   attr_reader :address
+  attr_reader :scope
   
   def initialize(address, process, scope)
     @address  = address

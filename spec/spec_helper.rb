@@ -22,6 +22,12 @@ def process(code, context)
   Verneuil::Process.new(program, context)
 end
 
+def block(process, instruction)
+  Verneuil::Block.new(
+    Verneuil::Address.new(0), 
+    process, 
+    process.current_scope.child)
+end
 
 # Returns the code of a sample program (in spec/programs).
 #

@@ -3,8 +3,9 @@ require 'spec_helper'
 describe Verneuil::ProcessGroup do
   context "a parent with two children" do
     let(:parent)  { process(%Q(3), nil) }
-    let!(:child1)  { parent.fork_child(Verneuil::Address.new(0)) }
-    let!(:child2)  { parent.fork_child(Verneuil::Address.new(0)) }
+    
+    let!(:child1)  { parent.fork_child(block(parent, 0)) }
+    let!(:child2)  { parent.fork_child(block(parent, 0)) }
 
     let(:group)   { parent.group }
 
@@ -27,7 +28,7 @@ describe Verneuil::ProcessGroup do
     before(:each) { 
       current = parent
       10.times do
-        current = current.fork_child(Verneuil::Address.new(0))
+        current = current.fork_child(block(current, 0))
       end
     }
     

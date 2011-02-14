@@ -5,5 +5,5 @@ child = fork do
   [a, b]   # 2, 0 if scoping & accesses worked
 end
 
-retval = child.join
-[a, retval].flatten # 1, 2, 0 if scoping & accesses worked
+child.join
+[a, child.value].flatten # 2, 2, 0 if scoping & accesses worked

@@ -10,5 +10,5 @@
 Verneuil::Process.kernel_method nil, :fork do |process, _|
   block = process.current_block
 
-  process.push process.fork_child(block.address)
+  process.fork_child(block)
 end

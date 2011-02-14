@@ -8,5 +8,6 @@ class Verneuil::Method < Struct.new(:receiver, :name, :address)
     else
       process.call address
     end
+    throw :verneuil_code
   end
 end

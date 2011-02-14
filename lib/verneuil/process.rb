@@ -209,9 +209,9 @@ class Verneuil::Process
   # when encountering a 'return' instruction. Returns that new process 
   # instance. 
   #
-  def fork_child(address)
-    child = Verneuil::Process.new(@program, current_scope.context)
-    child.confine(address)
+  def fork_child(block)
+    child = Verneuil::Process.new(@program, nil)
+    child.run_block(block)
     
     @children << child
     
@@ -221,9 +221,11 @@ class Verneuil::Process
   # Confines execution to a single method. This means setting up the return
   # stack to return into nirvana once the VM reaches a 'return' instruction. 
   #
-  def confine(address)
-    @ip = address.ip
+  def run_block(block)
     @call_stack.push(-1)
+    jump block.address
+
+    @scopes = [block.scope]
   end
   
   # Pushes a return value to the value stack. 
@@ -245,6 +247,19 @@ class Verneuil::Process
     "process(#{object_id}, #{@ip}, #{@call_stack}, w:#{@joining.size}, c:#{children.size}, h:#{halted?})"
   end
 
+  def dispatch_to_verneuil(receiver, name)
+    if v_method = lookup_method(receiver, name)
+      catch(:verneuil_code) {
+        retval = v_method.invoke(self, receiver)
+        @stack.push retval
+      } 
+      return true
+    end
+    
+    return false
+  end
+  
+
   # VM Implementation --------------------------------------------------------
   
   # A call to an implicit target (self).
@@ -257,8 +272,7 @@ class Verneuil::Process
     end
     
     # Verneuil method?
-    v_method = lookup_method(nil, name)
-    return v_method.invoke(self, nil) if v_method
+    return if dispatch_to_verneuil(nil, name)
     
     # Ruby method! (or else)
     args = @stack.pop(argc)
@@ -276,8 +290,7 @@ class Verneuil::Process
     # good situation.
 
     # Verneuil method? (class method mask)
-    v_method = lookup_method(receiver, name)
-    return v_method.invoke(self, receiver) if v_method
+    return if dispatch_to_verneuil(receiver, name)
     
     # Must be a Ruby method then. The catch allows internal classes like 
     # Verneuil::Block to skip the stack.push.
