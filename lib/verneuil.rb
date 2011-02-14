@@ -14,3 +14,4 @@ require 'verneuil/compiler'
 
 require 'verneuil/scope'
 require 'verneuil/process'
+require 'verneuil/process_group'

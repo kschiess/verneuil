@@ -21,9 +21,15 @@ class Verneuil::Process
     @ip = 0
     # Should we stop immediately? Cannot restart after setting this. 
     @halted = false
+    # This process' children
+    @children = []
   end
-  
+
+  # Instruction pointer
   attr_accessor :ip
+  
+  # A process is also a process group, containing its children. 
+  attr_reader :children
   
   # Runs the program until it completes and returns the last expression
   # in the program.
@@ -57,6 +63,12 @@ class Verneuil::Process
   end
   
   # Internal helper methods --------------------------------------------------
+  
+  # Returns the process group having this process as root node. 
+  #
+  def group
+    @group ||= Verneuil::ProcessGroup.new(self)
+  end
   
   # Fetches the next instruction and advances @ip.
   #
@@ -172,6 +184,9 @@ class Verneuil::Process
   def fork_child(address)
     child = Verneuil::Process.new(@program, current_scope.context)
     child.confine(address)
+    
+    @children << child
+    
     return child
   end
   
@@ -343,3 +358,4 @@ end
 require 'verneuil/process/kernel_methods'
 
 require 'verneuil/kernel/fork'
+require 'verneuil/kernel/process_join'

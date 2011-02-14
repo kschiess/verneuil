@@ -9,7 +9,7 @@ if ARGV.first == '-v'
   ARGV.shift
 end
 
-program = Verneuil::Compiler.compile(ARGF.read)
+program = Verneuil::Compiler.compile(ARGF.read).program
 if verbose
   p program
   puts

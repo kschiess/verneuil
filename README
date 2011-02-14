@@ -41,5 +41,6 @@ Ruby features should work:
  * while
  * Masking class methods 
  * correct self
-
+ * fork
+ 
 (c) 2011 Kaspar Schiess

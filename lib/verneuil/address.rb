@@ -2,7 +2,7 @@
 class Verneuil::Address
   attr_accessor :ip
   
-  def initialize(ip, generator)
+  def initialize(ip, generator=nil)
     @ip = ip
     @generator = generator
   end
