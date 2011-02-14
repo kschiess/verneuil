@@ -154,7 +154,7 @@ class Verneuil::Process
     end
     
     # Verneuil method?
-    v_method = @program.lookup_method(nil, name)
+    v_method = @program.symbol_table.lookup_method(nil, name)
     return v_method.invoke(self, nil) if v_method
     
     # Ruby method! (or else)
@@ -173,7 +173,7 @@ class Verneuil::Process
     # good situation.
 
     # Verneuil method? (class method mask)
-    v_method = @program.lookup_method(receiver, name)
+    v_method = @program.symbol_table.lookup_method(receiver, name)
     return v_method.invoke(self, receiver) if v_method
     
     # Must be a Ruby method then. The catch allows internal classes like 
@@ -287,3 +287,4 @@ class Verneuil::Process
 end
 
 # require 'verneuil/process/fork'
+require 'verneuil/process/kernel_methods'

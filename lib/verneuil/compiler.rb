@@ -232,7 +232,7 @@ class Verneuil::Compiler
       adr_end = @generator.fwd_adr
       @generator.jump adr_end
       
-      @generator.program.add_method(
+      @generator.program.symbol_table.add_method(
         @class_context.last, 
         name, 
         @generator.current_adr)

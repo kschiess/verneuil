@@ -7,10 +7,12 @@ require 'verneuil/instruction'
 class Verneuil::Program
   # Gives access to the internal array of instructions (the program memory)
   attr_reader :instructions
+  # Access to the programs symbol table.
+  attr_reader :symbol_table
   
   def initialize
     @instructions = []
-    @functions = {}
+    @symbol_table = Verneuil::SymbolTable.new
   end
     
   # Make programs behave nicely with respect to comparison. 
@@ -41,32 +43,14 @@ class Verneuil::Program
   def add(instruction)
     @instructions << instruction
   end
-  
-  # Defines a function. 
-  #
-  def add_method(klass, name, adr)
-    @functions[[klass, name]] = Verneuil::Method.new(klass, name, adr)
-  end
-  
-  # Returns the function that matches the given receiver and method name. 
-  #
-  def lookup_method(recv, name)
-    key = if recv
-      [recv.class.name.to_sym, name]
-    else
-      [nil, name]
-    end
     
-    @functions[key]
-  end
-  
   # Printing
   # 
   def inspect
     s = ''
     @instructions.each_with_index do |instruction, idx|
       method_label = ''
-      if entry=@functions.find { |(r,n), m| m.address.ip == idx }
+      if entry=symbol_table.methods.find { |(r,n), m| m.address.ip == idx }
         m = entry.last
         method_label = [m.receiver, m.name].inspect
       end

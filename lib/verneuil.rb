@@ -5,6 +5,7 @@ end
 
 require 'verneuil/address'
 require 'verneuil/method'
+require 'verneuil/symbol_table'
 require 'verneuil/block'
 require 'verneuil/program'
 
