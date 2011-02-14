@@ -99,5 +99,15 @@ describe Verneuil::Process do
       p1.step.should == 42
       p1.should be_halted
     end 
+    it "should halt the machine if the ip is negative" do
+      program = generate do |g|
+        g.ruby_call_implicit :foo, 0
+      end
+      p1 = process(program)
+      
+      p1.ip = -1
+      p1.step
+      p1.should be_halted
+    end 
   end
 end

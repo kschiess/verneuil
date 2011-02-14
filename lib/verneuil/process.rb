@@ -23,6 +23,8 @@ class Verneuil::Process
     @halted = false
   end
   
+  attr_accessor :ip
+  
   # Runs the program until it completes and returns the last expression
   # in the program.
   #
@@ -43,7 +45,7 @@ class Verneuil::Process
   
     # p [@ip, instruction, @stack, current_scope, @call_stack]
     
-    instr_halt if @ip >= @program.size
+    instr_halt unless instruction_pointer_valid?
     
     halted? ? @stack.last : nil
   end
@@ -54,12 +56,14 @@ class Verneuil::Process
     !!@halted
   end
   
+  # Internal helper methods --------------------------------------------------
+  
   # Fetches the next instruction and advances @ip.
   #
   def fetch_and_advance
     # Pretends that the memory beyond the current space is filled with :halt
     # instructions.
-    return :halt if @ip >= @program.size
+    return :halt unless instruction_pointer_valid?
     
     instruction = @program[@ip]
     @ip += 1
@@ -134,7 +138,7 @@ class Verneuil::Process
     @call_stack.push @ip
     jump adr
   end
-  
+    
   # Looks up a method in internal tables. 
   #
   def lookup_method(receiver, name)
@@ -146,6 +150,50 @@ class Verneuil::Process
       return method if method
     end
     return nil
+  end
+
+  # # Returns a number of arguments from the value stack. Use this to implement
+  # # kernel methods written in Ruby that manipulate the V machine. 
+  # #
+  # def get_args(n)
+  #   @stack.pop(n)
+  # end
+  
+  # Returns the currently active block or nil if no such block is available. 
+  #
+  def current_block
+    @blocks.last
+  end
+  
+  # Forks a new process that starts its execution at address and that halts 
+  # when encountering a 'return' instruction. Returns that new process 
+  # instance. 
+  #
+  def fork_child(address)
+    child = Verneuil::Process.new(@program, current_scope.context)
+    child.confine(address)
+    return child
+  end
+  
+  # Confines execution to a single method. This means setting up the return
+  # stack to return into nirvana once the VM reaches a 'return' instruction. 
+  #
+  def confine(address)
+    @ip = address.ip
+    @call_stack.push -1
+  end
+  
+  # Pushes a return value to the value stack. 
+  #
+  def push(value)
+    @stack.push value
+  end
+  
+  # True if the current instruction pointer is valid. 
+  #
+  def instruction_pointer_valid?
+    @ip >= 0 && 
+      @ip < @program.size
   end
 
   # VM Implementation --------------------------------------------------------
@@ -266,7 +314,7 @@ class Verneuil::Process
   #
   def instr_load_block
     fail "BUG: No implicit block!" if @blocks.empty?
-    @stack.push @blocks.last
+    @stack.push current_block
   end
   
   # Unloads a block

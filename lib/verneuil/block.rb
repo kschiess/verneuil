@@ -2,18 +2,21 @@
 # Abstracts the notion of a block.
 #
 class Verneuil::Block
-  def initialize(adr, process, scope)
-    @adr      = adr
+  # At what address does the block code start?
+  attr_reader :address
+  
+  def initialize(address, process, scope)
+    @address  = address
     @process  = process
     @scope    = scope
   end
   
   def call(*args)
-    @process.enter_block(args, @adr, @scope)
+    @process.enter_block(args, @address, @scope)
     throw :verneuil_code
   end
   
   def inspect
-    "block@#{@adr.ip}(#{@scope.inspect})"
+    "block@#{@address.ip}(#{@scope.inspect})"
   end
 end
