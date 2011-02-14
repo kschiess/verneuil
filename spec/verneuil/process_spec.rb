@@ -11,7 +11,7 @@ describe Verneuil::Process do
     let(:program) {
       generate { |g|
         adr_fun = g.fwd_adr
-        g.program.symbol_table.add_method nil, :foo, adr_fun
+        g.program.symbols.add Verneuil::Method.new(nil, :foo, adr_fun)
         
         g.ruby_call_implicit :foo, 0
         g.halt

@@ -8,11 +8,11 @@ class Verneuil::Program
   # Gives access to the internal array of instructions (the program memory)
   attr_reader :instructions
   # Access to the programs symbol table.
-  attr_reader :symbol_table
+  attr_reader :symbols
   
   def initialize
     @instructions = []
-    @symbol_table = Verneuil::SymbolTable.new
+    @symbols = Verneuil::SymbolTable.new
   end
     
   # Make programs behave nicely with respect to comparison. 
@@ -50,7 +50,7 @@ class Verneuil::Program
     s = ''
     @instructions.each_with_index do |instruction, idx|
       method_label = ''
-      if entry=symbol_table.methods.find { |(r,n), m| m.address.ip == idx }
+      if entry=symbols.methods.find { |(r,n), m| m.address.ip == idx }
         m = entry.last
         method_label = [m.receiver, m.name].inspect
       end

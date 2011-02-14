@@ -9,11 +9,12 @@ class Verneuil::SymbolTable
   end
   
   # Defines a function. This function will override the default of calling
-  # back to Ruby. 
+  # back to Ruby. Methods added here must support at least #receiver, 
+  # #name and #invoke. 
   #
   # Example: 
   #   # Replaces Foo#bar with the V method at address 15.
-  #   add_method(:Foo, :bar, Verneuil::Address.new(15))
+  #   add(method_obj)
   #
   def add(method)
     key = [method.receiver, method.name]

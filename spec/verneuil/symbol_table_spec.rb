@@ -14,7 +14,7 @@ describe Verneuil::SymbolTable do
     it "should handle addition of explicit methods (associated to a class)" do
       class Foo; end
       st.lookup_method(Foo.new, :bar).should be_nil
-      st.add(flexmock(:method, :receiver => :Foo, :name => :foo))
+      st.add(flexmock(:method, :receiver => Foo.name.to_sym, :name => :bar))
 
       method = st.lookup_method(Foo.new, :bar)
       method.should_not be_nil

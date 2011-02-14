@@ -232,10 +232,11 @@ class Verneuil::Compiler
       adr_end = @generator.fwd_adr
       @generator.jump adr_end
       
-      @generator.program.symbol_table.add_method(
+      method = Verneuil::Method.new(
         @class_context.last, 
         name, 
         @generator.current_adr)
+      @generator.program.symbols.add(method)
 
       # Enters a new local scope and defines arguments
       visit(args)
