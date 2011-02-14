@@ -228,12 +228,6 @@ class Verneuil::Process
     @scopes = [block.scope]
   end
   
-  # Pushes a return value to the value stack. 
-  #
-  def push(value)
-    @stack.push value
-  end
-  
   # True if the current instruction pointer is valid. 
   #
   def instruction_pointer_valid?
