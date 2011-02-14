@@ -8,11 +8,13 @@ describe Verneuil::Process do
     end
 
     it "should allow adding kernel methods and looking them up" do
-      sandbox.register_method(nil, :bar, :foo)
+      called = false
+      sandbox.kernel_method(nil, :bar) { called = true }
       method = sandbox.symbols.lookup_method(nil, :bar)
       
-      flexmock(self).should_receive(:foo).once
       method.invoke(flexmock(:process), flexmock(:receiver))
+      
+      called.should == true
     end 
   end
 end

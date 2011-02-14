@@ -48,13 +48,6 @@ class Verneuil::Process
     halted? ? @stack.last : nil
   end
   
-  # Override Kernel.fork here so that nobody forks for real without wanting
-  # to. 
-  #
-  def self.fork(*args, &block)
-    fail "BUG: Forking inside verneuil code should not call Kernel.fork."
-  end
-  
   # Returns true if the process has halted because it has reached its end.
   #
   def halted?
@@ -141,6 +134,19 @@ class Verneuil::Process
     @call_stack.push @ip
     jump adr
   end
+  
+  # Looks up a method in internal tables. 
+  #
+  def lookup_method(receiver, name)
+    [
+      @program.symbols, 
+      self.class.symbols
+    ].each do |table|
+      method = table.lookup_method(receiver, name)
+      return method if method
+    end
+    return nil
+  end
 
   # VM Implementation --------------------------------------------------------
   
@@ -154,7 +160,7 @@ class Verneuil::Process
     end
     
     # Verneuil method?
-    v_method = @program.symbols.lookup_method(nil, name)
+    v_method = lookup_method(nil, name)
     return v_method.invoke(self, nil) if v_method
     
     # Ruby method! (or else)
@@ -173,7 +179,7 @@ class Verneuil::Process
     # good situation.
 
     # Verneuil method? (class method mask)
-    v_method = @program.symbols.lookup_method(receiver, name)
+    v_method = lookup_method(receiver, name)
     return v_method.invoke(self, receiver) if v_method
     
     # Must be a Ruby method then. The catch allows internal classes like 
@@ -286,5 +292,6 @@ class Verneuil::Process
   
 end
 
-# require 'verneuil/process/fork'
 require 'verneuil/process/kernel_methods'
+
+require 'verneuil/kernel/fork'

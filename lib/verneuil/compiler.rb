@@ -13,7 +13,8 @@ class Verneuil::Compiler
   end
   
   def self.compile(*args)
-    new.compile(*args)
+    new.
+      tap { |compiler| compiler.compile(*args) }
   end
     
   # Compiles a piece of code within the current program. This means that any
