@@ -6,7 +6,8 @@ rubies - they are too pure and don't have the characteristics of real ones.
 
 This is a virtual machine that:
   * executes something that is almost Ruby (it looks like it)
-  * and that can store its state to disk. And resume.
+  * and that can store its state to disk. And resume. 
+    Think: Continuations. Serializable.
 
 Is it useful? That depends. You could for example use this to
   * script website interaction with your user
@@ -28,9 +29,6 @@ SYNOPSIS
   
 STATUS
 
-At version pre 0.1 and by no means ready for production. May or may not work, 
-depending on time of day. 
-
 Verneuil currently handles all the programs in spec/programs. The following
 Ruby features should work: 
 
@@ -42,6 +40,9 @@ Ruby features should work:
  * Masking class methods 
  * correct self
  * fork, join
+ 
+Currently this project lays sleeping for a few months - until I will need it
+again. That day is sure to come. 
  
 CONTRIBUTORS
 

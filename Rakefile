@@ -23,7 +23,7 @@ task :default => :spec
 # end
 
 desc 'Clear out RDoc'
-task :clean => [:clobber_rdoc, :clobber_package]
+task :clean => [:clobber_package]
 
 # This task actually builds the gem. 
 spec = eval(File.read('verneuil.gemspec'))
