@@ -44,7 +44,7 @@ class Verneuil::Process
       step
     end
     
-    @stack.last
+    value
   end
   
   # Runs one instruction. If the current process waits on another process
@@ -52,8 +52,9 @@ class Verneuil::Process
   # instead.
   #
   def step
-    verify_wait_conditions
+    verify_wait_conditions if waiting?
     
+    # If we're still waiting for someone, let's give them a little shove. 
     if waiting?
       joining.first.step
       return 
@@ -64,13 +65,15 @@ class Verneuil::Process
   
     # p [self, instruction, @stack, @call_stack, current_scope]
     
+    # If we just ran into uncharted memory - and we're not still waiting
+    # for someone - we'll just stop the machine.
     instr_halt if !waiting? && !instruction_pointer_valid?
   end
   
   # Returns true if the process has halted because it has reached its end.
   #
   def halted?
-    !!@halted
+    @halted
   end
 
   # Returns true if the process waits for something to happen.
@@ -88,6 +91,9 @@ class Verneuil::Process
   
   # Internal helper methods --------------------------------------------------
   
+  # Checks if the conditions that make this process wait still apply. This may
+  # clear up the wait state so that waiting? changes value after this method.
+  #
   def verify_wait_conditions
     @joining.delete_if { |process| process.halted? }
   end
@@ -112,7 +118,7 @@ class Verneuil::Process
   end
   
   # Decodes the instruction into opcode and arguments and calls a method
-  # on this instance called opcode_OPCODE giving the arguments as method 
+  # on this instance called instr_OPCODE giving the arguments as method 
   # arguments. 
   #
   def dispatch(instruction)
@@ -192,13 +198,6 @@ class Verneuil::Process
     return nil
   end
 
-  # # Returns a number of arguments from the value stack. Use this to implement
-  # # kernel methods written in Ruby that manipulate the V machine. 
-  # #
-  # def get_args(n)
-  #   @stack.pop(n)
-  # end
-  
   # Returns the currently active block or nil if no such block is available. 
   #
   def current_block
@@ -208,6 +207,11 @@ class Verneuil::Process
   # Forks a new process that starts its execution at address and that halts 
   # when encountering a 'return' instruction. Returns that new process 
   # instance. 
+  #
+  # The newly created child process is also stored in this process' children
+  # array. You can run the process and all of its children by calling 
+  #
+  #   process.group.run
   #
   def fork_child(block)
     child = Verneuil::Process.new(@program, nil)
@@ -241,6 +245,12 @@ class Verneuil::Process
     "process(#{object_id}, #{@ip}, #{@call_stack}, w:#{@joining.size}, c:#{children.size}, h:#{halted?})"
   end
 
+  # Try to dispatch a method call to a method defined inside the Verneuil 
+  # VM. There are currently two kinds of methods in this category: 
+  #
+  #   * Kernel methods
+  #   * Methods implemented in V
+  #
   def dispatch_to_verneuil(receiver, name)
     if v_method = lookup_method(receiver, name)
       catch(:verneuil_code) {
