@@ -1,3 +1,4 @@
+require 'timeout'
 
 RSpec.configure do |config|
   config.mock_with :flexmock
