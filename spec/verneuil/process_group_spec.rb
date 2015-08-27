@@ -11,7 +11,7 @@ describe Verneuil::ProcessGroup do
 
     describe "<- #step" do
       it "should step all three processes" do
-        parent.children.should have(2).childs
+        parent.children.size.should == 2
 
         3.times do
           group.step

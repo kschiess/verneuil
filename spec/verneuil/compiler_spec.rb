@@ -195,9 +195,9 @@ describe Verneuil::Compiler do
     
     context "function :foo" do
       let(:program) { compiler.compile(code) }
-      subject { program.symbols.lookup_method(nil, :foo) }
+      let(:subject) { program.symbols.lookup_method(nil, :foo) }
       
-      its(:name)    { should == :foo }
+      it { subject.name.should == :foo }
       it "should point to the address of the function" do
         subject.address.ip.should == 1
       end 
